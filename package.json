@@ -1,0 +1,6 @@
+{
+	"name": "meat",
+	"workspaces": [
+		"./site"
+	]
+}

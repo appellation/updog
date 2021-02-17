@@ -1,0 +1,24 @@
+import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document'
+
+class MyDocument extends Document {
+  static async getInitialProps(ctx: DocumentContext) {
+    const initialProps = await Document.getInitialProps(ctx)
+    return { ...initialProps }
+  }
+
+  render() {
+    return (
+      <Html>
+        <Head>
+          <script src="https://kit.fontawesome.com/d4e5270bca.js" crossOrigin="anonymous"></script>
+        </Head>
+        <body className="bg-gray-700">
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    )
+  }
+}
+
+export default MyDocument
