@@ -3,7 +3,7 @@
 **/node_modules
 
 # config
-/.env
+/.env*
 /secret.key
 
 # docker

@@ -9,7 +9,7 @@ import JoinRoom from '../components/JoinRoom';
 import MicControl from '../components/media/MicControl';
 import VideoControl from '../components/media/VideoControl';
 
-import { API_URL } from '../src/constants';
+import { WS_API_BASE } from '../src/constants';
 import fetch, { fetcher } from '../src/fetch';
 import CenterCard from '../components/ui/CenterCard';
 
@@ -50,7 +50,7 @@ export default function RoomId() {
 		else setLoading(false);
 	}, [rooms, roomId]);
 
-	const { lastJsonMessage } = useWebSocket(`ws://${API_URL}/rooms/${router.query.roomId}`, {
+	const { lastJsonMessage } = useWebSocket(`${WS_API_BASE}/rooms/${router.query.roomId}`, {
 		onOpen: () => setLoading(false),
 	}, 'roomId' in router.query && !mustJoin && rooms !== undefined);
 

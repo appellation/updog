@@ -78,7 +78,7 @@ async fn main() -> tide::Result<()> {
 	))
 	.with(
 		CorsMiddleware::new()
-			.allow_origin(Origin::from("http://localhost:3000"))
+			.allow_origin(Origin::from(std::env::var("CORS_ORIGIN").unwrap_or_else(|_| "http://localhost:3000".into())))
 			.allow_credentials(true)
 			.allow_headers("content-type".parse::<HeaderValue>()?)
 			.allow_methods("GET, POST, OPTIONS, PUT".parse::<HeaderValue>().unwrap()),

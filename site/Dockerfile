@@ -2,6 +2,11 @@ FROM node
 
 EXPOSE 3000
 
+ARG WS_API_BASE
+ENV WS_API_BASE $WS_API_BASE
+ARG HTTP_API_BASE
+ENV HTTP_API_BASE $HTTP_API_BASE
+
 WORKDIR /root/src
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY ./site ./site

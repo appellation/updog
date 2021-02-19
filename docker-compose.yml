@@ -9,6 +9,9 @@ services:
       - frontend
       - backend
     restart: on-failure
+    environment:
+      REDIS_URI: redis://redis:6379
+      CORS_ORIGIN: https://updog.wtf
   redis:
     image: redis
     networks:
@@ -26,6 +29,9 @@ services:
     build:
       context: .
       dockerfile: ./site/Dockerfile
+      args:
+        - WS_API_BASE=wss://updog.wtf
+        - HTTP_API_BASE=https://updog.wtf
     networks:
       - frontend
 
