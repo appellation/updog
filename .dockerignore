@@ -1,0 +1,11 @@
+# build
+/target
+**/node_modules
+
+# config
+/.env
+/secret.key
+
+# docker
+.dockerignore
+**/Dockerfile

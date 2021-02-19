@@ -63,25 +63,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "afddf7f520a80dbf76e6f50a35bca42a2331ef227a28b3b6dc5c2e2338d114b1"
 
 [[package]]
-name = "api"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-std",
- "bincode",
- "dotenv",
- "lazy_static",
- "nanoid",
- "rand 0.8.3",
- "redis",
- "serde",
- "serde_json",
- "tide",
- "tide-websockets",
- "urlencoding",
-]
-
-[[package]]
 name = "arc-swap"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1084,6 +1065,25 @@ name = "maybe-uninit"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60302e4db3a61da70c0cb7991976248362f30319e88850c487b9b95bbf059e00"
+
+[[package]]
+name = "meat-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-std",
+ "bincode",
+ "dotenv",
+ "lazy_static",
+ "nanoid",
+ "rand 0.8.3",
+ "redis",
+ "serde",
+ "serde_json",
+ "tide",
+ "tide-websockets",
+ "urlencoding",
+]
 
 [[package]]
 name = "memchr"

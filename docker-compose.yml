@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    networks:
+      - frontend
+      - backend
+    restart: on-failure
+  redis:
+    image: redis
+    networks:
+      - backend
+  nginx:
+    image: nginx
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - frontend
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  site:
+    build:
+      context: .
+      dockerfile: ./site/Dockerfile
+    networks:
+      - frontend
+
+networks:
+  frontend:
+  backend:

@@ -1,5 +1,5 @@
 [package]
-name = "api"
+name = "meat-api"
 version = "0.1.0"
 authors = ["Will Nelson <will@wnelson.xyz>"]
 edition = "2018"
