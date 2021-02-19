@@ -31,8 +31,8 @@ services:
       context: .
       dockerfile: ./site/Dockerfile
       args:
-        - WS_API_BASE=wss://updog.wtf
-        - HTTP_API_BASE=https://updog.wtf
+        - WS_API_BASE=wss://api.updog.wtf
+        - HTTP_API_BASE=https://api.updog.wtf
     networks:
       - frontend
 
