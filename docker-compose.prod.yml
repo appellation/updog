@@ -19,7 +19,7 @@ services:
     ports:
       - 443:443
     volumes:
-      - ./traefik/config.dev.toml:/etc/traefik/traefik.toml:ro
+      - ./traefik/config.prod.toml:/etc/traefik/traefik.toml:ro
   site:
     image: docker.pkg.github.com/appellation/meat/site
     networks:

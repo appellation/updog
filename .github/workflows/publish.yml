@@ -17,7 +17,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: ${{ github.repository }}/api
+          repository: ${{ github.repository }}/meat-api
           auto_tag: true
           allow_pull_request: true
           file: api/Dockerfile
@@ -30,7 +30,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: ${{ github.repository }}/site
+          repository: ${{ github.repository }}/meat-site
           auto_tag: true
           allow_pull_request: true
           file: site/Dockerfile
