@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  api:
+    image: docker.pkg.github.com/appellation/meat/api
+    networks:
+      - frontend
+      - backend
+    environment:
+      CORS_ORIGIN: https://updog.wtf
+    labels:
+      - traefik.http.routers.api.rule=Host(`api.updog.wtf`)
+  redis:
+    networks:
+      - backend
+    volumes:
+      - redis_data:/data
+  reverse-proxy:
+    ports:
+      - 443:443
+    volumes:
+      - ./traefik/config.dev.toml:/etc/traefik/traefik.toml:ro
+  site:
+    image: docker.pkg.github.com/appellation/meat/site
+    networks:
+      - frontend
+    labels:
+      - traefik.http.routers.site.rule=Host(`updog.wtf`)
+
+volumes:
+  redis_data:
+
+networks:
+  frontend:
+  backend:

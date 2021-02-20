@@ -1,0 +1,8 @@
+[entrypoints.web]
+address = ":443"
+
+[providers.docker]
+
+[[tls.certificates]]
+certFile = "/etc/traefik/certs/updog.wtf.crt"
+keyFile = "/etc/traefik/certs/updog.wtf.key"

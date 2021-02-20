@@ -1,0 +1,9 @@
+[entryPoints.api]
+address = ":8000"
+[entryPoints.site]
+address = ":3000"
+
+[api]
+insecure = true
+
+[providers.docker]

@@ -2,40 +2,19 @@ version: '3'
 
 services:
   api:
-    build:
-      context: .
-      dockerfile: ./api/Dockerfile
-    networks:
-      - frontend
-      - backend
-    restart: on-failure
     environment:
-      REDIS_URI: redis://redis:6379
-      CORS_ORIGIN: https://updog.wtf
+      REDIS_URI: redis://redis
+    restart: on-failure
+    expose:
+      - 8080
   redis:
     image: redis
-    networks:
-      - backend
-  nginx:
-    image: nginx
-    ports:
-      - 80:80
-      - 443:443
-    networks:
-      - frontend
+    labels:
+      - traefik.enable=false
+  reverse-proxy:
+    image: traefik:v2.4
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/var/run/docker.sock
   site:
-    build:
-      context: .
-      dockerfile: ./site/Dockerfile
-      args:
-        - WS_API_BASE=wss://api.updog.wtf
-        - HTTP_API_BASE=https://api.updog.wtf
-    networks:
-      - frontend
-
-networks:
-  frontend:
-  backend:
+    expose:
+      - 3000

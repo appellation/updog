@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    environment:
+      CORS_ORIGIN: http://localhost:3000
+    labels:
+      - traefik.http.routers.api.rule=Host(`localhost`)
+      - traefik.http.routers.api.entryPoints=api
+  redis:
+  reverse-proxy:
+    ports:
+      - 8000:8000
+      - 8080:8080
+      - 3000:3000
+    volumes:
+      - ./traefik/config.dev.toml:/etc/traefik/traefik.toml:ro
+  site:
+    build:
+      context: .
+      dockerfile: ./site/Dockerfile
+      args:
+        - WS_API_BASE=ws://localhost:8000
+        - HTTP_API_BASE=http://localhost:8000
+    labels:
+      - traefik.http.routers.site.rule=Host(`localhost`)
+      - traefik.http.routers.site.entryPoints=site
