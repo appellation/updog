@@ -78,7 +78,9 @@ async fn main() -> tide::Result<()> {
 	))
 	.with(
 		CorsMiddleware::new()
-			.allow_origin(Origin::from(std::env::var("CORS_ORIGIN").unwrap_or_else(|_| "http://localhost:3000".into())))
+			.allow_origin(Origin::from(
+				std::env::var("CORS_ORIGIN").unwrap_or_else(|_| "http://localhost:3000".into()),
+			))
 			.allow_credentials(true)
 			.allow_headers("content-type".parse::<HeaderValue>()?)
 			.allow_methods("GET, POST, OPTIONS, PUT".parse::<HeaderValue>().unwrap()),
@@ -101,9 +103,6 @@ async fn main() -> tide::Result<()> {
 		.post(routes::create_room)
 		.get(routes::get_rooms);
 
-	app.at("/rooms/:room_id/clients/:client_id")
-		.put(routes::publish_ws);
-
-	app.listen("0.0.0.0:8080").await?;
+	app.listen("127.0.0.1:8080").await?;
 	Ok(())
 }

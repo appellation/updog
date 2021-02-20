@@ -1082,7 +1082,6 @@ dependencies = [
  "serde_json",
  "tide",
  "tide-websockets",
- "urlencoding",
 ]
 
 [[package]]
@@ -1770,8 +1769,7 @@ dependencies = [
 [[package]]
 name = "tide-websockets"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca9eef759bbe19bd62693c01f1ac58207290513096caccafed140dbc81deaa47"
+source = "git+https://github.com/http-rs/tide-websockets?rev=270f408cdf4e5ee2bd28c7f5fcb57e5085d49ead#270f408cdf4e5ee2bd28c7f5fcb57e5085d49ead"
 dependencies = [
  "async-dup",
  "async-std",
@@ -1946,12 +1944,6 @@ dependencies = [
  "percent-encoding",
  "serde",
 ]
-
-[[package]]
-name = "urlencoding"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9232eb53352b4442e40d7900465dfc534e8cb2dc8f18656fcb2ac16112b5593"
 
 [[package]]
 name = "utf-8"

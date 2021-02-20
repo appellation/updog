@@ -2,14 +2,17 @@ use std::collections::HashSet;
 
 use async_std::prelude::*;
 use lazy_static::lazy_static;
-use redis::{aio::PubSub, cmd, AsyncCommands, Script};
+use redis::{
+	aio::{Connection, PubSub},
+	cmd, AsyncCommands, Script,
+};
 use serde::{Deserialize, Serialize};
 use tide::{Body, Request, Response, StatusCode};
-use tide_websockets::WebSocketConnection;
+use tide_websockets::{Message, WebSocketConnection};
 
 use crate::{
 	middleware::ROOM_SESSION_KEY,
-	models::{WsOp, WsPacket},
+	models::{PubSubPacket, WsOp, WsPacket},
 	State, ONE_DAY_IN_SECONDS,
 };
 
@@ -116,12 +119,11 @@ pub async fn join_room(mut req: Request<State>) -> tide::Result {
 	Ok(status.into())
 }
 
-pub async fn stream_ws(mut req: Request<State>, stream: WebSocketConnection) -> tide::Result<()> {
-	println!("new ws opened");
+pub async fn stream_ws(req: Request<State>, stream: WebSocketConnection) -> tide::Result<()> {
 	let room_id = req.param("room_id")?.to_owned();
 	let client_id = req.session().id();
 
-	let hello_packet = WsPacket {
+	let hello_packet = PubSubPacket {
 		src_id: client_id,
 		dst_id: None,
 		op: WsOp::Hello,
@@ -131,37 +133,46 @@ pub async fn stream_ws(mut req: Request<State>, stream: WebSocketConnection) -> 
 	conn.publish(&room_id, serde_json::to_string(&hello_packet)?)
 		.await?;
 
-	let mut signals = conn.into_pubsub();
+	let signals = req.state().db.get_async_std_connection().await?;
+	let mut signals = signals.into_pubsub();
 	signals.subscribe(&room_id).await?;
 
 	let publisher = consume_pubsub(client_id, signals, stream.clone());
-	let mut consumer = stream.filter_map(|msg| msg.ok()).take_while(|msg| !msg.is_close());
-	let consumer = consumer.try_for_each(|_| Ok(()));
+	let consumer = consume_ws(&room_id, client_id, conn, stream);
+
 	consumer.try_race(publisher).await?;
-
-	req.session_mut().remove(&room_id);
-	println!("ws closed");
-
 	Ok(())
 }
 
-pub async fn publish_ws(mut req: Request<State>) -> tide::Result {
-	let signal = req.body_json().await?;
-	let room_id = req.param("room_id")?;
-	let dst_id = urlencoding::decode(req.param("client_id")?)?;
-	let src_id = req.session().id();
+async fn consume_ws<'a>(
+	room_id: &'a str,
+	client_id: &'a str,
+	mut conn: Connection,
+	mut stream: WebSocketConnection,
+) -> tide::Result<()> {
+	while let Some(Ok(msg)) = stream.next().await {
+		let packet = match &msg {
+			Message::Ping(data) => {
+				let _ = stream.send(Message::Pong(data.clone())).await;
+				continue;
+			}
+			Message::Close(_) => break,
+			Message::Binary(data) => serde_json::from_slice::<WsPacket>(data)?,
+			Message::Text(data) => serde_json::from_str::<WsPacket>(data)?,
+			_ => continue,
+		};
 
-	let signal_packet = WsPacket {
-		src_id,
-		dst_id: Some(&dst_id),
-		op: WsOp::Signal(signal),
-	};
+		let packet = PubSubPacket {
+			dst_id: Some(packet.client_id),
+			op: packet.op,
+			src_id: client_id,
+		};
 
-	let mut conn = req.state().db.get_async_std_connection().await?;
-	conn.publish(room_id, serde_json::to_string(&signal_packet)?)
-		.await?;
+		conn.publish(room_id, serde_json::to_string(&packet)?)
+			.await?;
+	}
 
-	Ok(StatusCode::Ok.into())
+	Ok(())
 }
 
 async fn consume_pubsub(
@@ -173,10 +184,15 @@ async fn consume_pubsub(
 
 	while let Some(message) = messages.next().await {
 		let payload = message.get_payload::<String>()?;
-		let packet = serde_json::from_str::<WsPacket>(&payload)?;
+		let packet = serde_json::from_str::<PubSubPacket>(&payload)?;
 		if (packet.dst_id == None && packet.src_id != client_id) || packet.dst_id == Some(client_id)
 		{
-			out.send_string(payload).await?;
+			let send_packet = WsPacket {
+				client_id: packet.src_id,
+				op: packet.op,
+			};
+			out.send_string(serde_json::to_string(&send_packet)?)
+				.await?;
 		}
 	}
 

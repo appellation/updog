@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <CenterCard>
       {error && <p>{error.toString()}</p>}
-      {data ? <ol>{data.map((id: string) => <li key={id}><Link href={`/${id}`}><a>{id}</a></Link></li>)}</ol> : <p>Loading...</p>}
+      {data && Array.isArray(data) ? <ol>{data.map((id: string) => <li key={id}><Link href={`/${id}`}><a>{id}</a></Link></li>)}</ol> : <p>Loading...</p>}
       <h1 className="text-3xl font-bold mb-6">My Chat</h1>
       <form onSubmit={async event => {
         event.preventDefault();

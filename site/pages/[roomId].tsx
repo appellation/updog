@@ -10,7 +10,7 @@ import MicControl from '../components/media/MicControl';
 import VideoControl from '../components/media/VideoControl';
 
 import { WS_API_BASE } from '../src/constants';
-import fetch, { fetcher } from '../src/fetch';
+import { fetcher } from '../src/fetch';
 import CenterCard from '../components/ui/CenterCard';
 
 enum SignalOp {
@@ -24,8 +24,7 @@ interface Payload {
 }
 
 interface Packet {
-	src_id: string;
-	dst_id?: string;
+	client_id: string;
 	op: Payload;
 }
 
@@ -50,7 +49,7 @@ export default function RoomId() {
 		else setLoading(false);
 	}, [rooms, roomId]);
 
-	const { lastJsonMessage } = useWebSocket(`${WS_API_BASE}/rooms/${router.query.roomId}`, {
+	const { lastJsonMessage, sendJsonMessage } = useWebSocket(`${WS_API_BASE}/rooms/${router.query.roomId}`, {
 		onOpen: () => setLoading(false),
 	}, 'roomId' in router.query && !mustJoin && rooms !== undefined);
 
@@ -60,10 +59,8 @@ export default function RoomId() {
 		const packet: Packet | null = lastJsonMessage;
 		if (!packet) return;
 
-		let peer = clients.get(packet.src_id);
-		if (peer) {
-			// console.log(`client ${packet.client_id} already exists!`);
-		} else {
+		let peer = clients.get(packet.client_id);
+		if (!peer) {
 			switch (packet.op.t) {
 				case SignalOp.HELLO: {
 					peer = new SimplePeer({ initiator: true });
@@ -79,16 +76,16 @@ export default function RoomId() {
 			}
 
 			peer.on('signal', data => {
-				fetch.put(`/rooms/${roomId}/clients/${encodeURIComponent(packet.src_id)}`, data);
+				sendJsonMessage({ client_id: packet.client_id, op: { t: 'Signal', d: data } });
 			});
 
 			peer.on('close', () => {
-				clients.delete(packet.src_id);
+				clients.delete(packet.client_id);
 				setClients(clients);
 			});
 
 			peer.on('error', (e) => {
-				clients.delete(packet.src_id);
+				clients.delete(packet.client_id);
 				setClients(clients);
 				console.error(e);
 			});
@@ -99,7 +96,7 @@ export default function RoomId() {
 
 			for (const stream of streams) (peer as any).addStream(stream);
 
-			clients.set(packet.src_id, peer);
+			clients.set(packet.client_id, peer);
 			setClients(clients);
 		}
 
@@ -107,7 +104,7 @@ export default function RoomId() {
 	}, [lastJsonMessage]);
 
 	if (loading) {
-		return <CenterCard><h1 className="text-3xl font-bold mb-6">Loading&hellip;</h1></CenterCard>;
+		return <CenterCard><h1 className="text-3xl font-bold">Loading&hellip;</h1></CenterCard>;
 	}
 
 	if (mustJoin) return <JoinRoom />;

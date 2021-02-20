@@ -18,5 +18,4 @@ redis = { version = "0.19.0", features = ["connection-manager", "async-std-comp"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tide = "0.16.0"
-tide-websockets = "0.2.0"
-urlencoding = "1.1.1"
+tide-websockets = { git = "https://github.com/http-rs/tide-websockets", rev = "270f408cdf4e5ee2bd28c7f5fcb57e5085d49ead" }
