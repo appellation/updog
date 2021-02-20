@@ -16,7 +16,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:
-      - traefik.http.routers.dashboard.entryPoints=dashboard
       - traefik.http.routers.dashboard.middlewares=dashboard-users
       - traefik.http.routers.dashboard.service=api@internal
       - traefik.http.middlewares.dashboard-users.basicAuth.users=test:$$apr1$$g2f7XVCH$$P3EurA3sxLe3RYQHDCDvD0
