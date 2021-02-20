@@ -1,0 +1,37 @@
+name: Publish
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  release:
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: jerray/publish-docker-action@v1.0.5
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: ${{ github.repository }}/api
+          auto_tag: true
+          allow_pull_request: true
+          file: api/Dockerfile
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: jerray/publish-docker-action@v1.0.5
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: ${{ github.repository }}/site
+          auto_tag: true
+          allow_pull_request: true
+          file: site/Dockerfile
+          build_args: WS_API_BASE=wss://api.updog.wtf,HTTP_API_BASE=https://api.updog.wtf
