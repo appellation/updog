@@ -9,3 +9,6 @@ debugLogGeneratedTemplate = true
 
 [api]
 dashboard = true
+
+[pilot]
+token = "29faf404-3348-4ac7-ba9e-a4abb4ca4a1a"

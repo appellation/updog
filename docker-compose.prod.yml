@@ -25,6 +25,7 @@ services:
       - ./traefik/config:/etc/traefik/config:ro
     labels:
       - traefik.http.routers.dashboard.rule=Host(`dashboard.updog.wtf`)
+      - traefik.http.routers.dashboard.tls=true
   site:
     image: docker.pkg.github.com/appellation/meat/meat-site
     networks:
