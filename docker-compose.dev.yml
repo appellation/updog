@@ -18,6 +18,8 @@ services:
       - 3000:3000
     volumes:
       - ./traefik/config.dev.toml:/etc/traefik/traefik.toml:ro
+    labels:
+      - traefik.http.routers.dashboard.rule=Host(`localhost`)
   site:
     build:
       context: .
