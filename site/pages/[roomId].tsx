@@ -11,6 +11,8 @@ import VideoControl from '../components/media/VideoControl';
 
 import { WS_API_BASE } from '../src/constants';
 import CenterCard from '../components/ui/CenterCard';
+import ErrorSnackbar from '../components/ErrorSnackbar';
+import { AxiosError } from 'axios';
 
 enum SignalOp {
 	HELLO = 'Hello',
@@ -31,7 +33,7 @@ export default function RoomId() {
 	const router = useRouter();
 	const roomId = router.query.roomId as string | undefined;
 
-	const { data: rooms } = useSWR<string[]>('/rooms');
+	const { data, error } = useSWR<string[], AxiosError>('/rooms');
 
 	const [clients, setClients] = useState<Map<string, SimplePeer.Instance>>(() => new Map());
 	const [mustJoin, setMustJoin] = useState<boolean>(true);
@@ -44,13 +46,17 @@ export default function RoomId() {
 	};
 
 	useEffect(() => {
-		if (roomId && rooms?.includes(roomId)) setMustJoin(false);
-		else setLoading(false);
-	}, [rooms, roomId]);
+		if (roomId) {
+			if (data || error) setLoading(false);
+			if (data?.includes(roomId)) setMustJoin(false);
+		}
+	}, [data, roomId]);
 
-	const { lastJsonMessage, sendJsonMessage } = useWebSocket(`${WS_API_BASE}/rooms/${router.query.roomId}`, {
-		onOpen: () => setLoading(false),
-	}, 'roomId' in router.query && !mustJoin && rooms !== undefined);
+	const { lastJsonMessage, sendJsonMessage } = useWebSocket(
+		`${WS_API_BASE}/rooms/${router.query.roomId}`,
+		{},
+		'roomId' in router.query && !mustJoin && !loading
+	);
 
 	useEffect(() => {
 		console.log(lastJsonMessage);
@@ -121,6 +127,7 @@ export default function RoomId() {
 				<MicControl onNewStream={onNewStream} />
 				<VideoControl onNewStream={onNewStream} />
 			</div>
+			<ErrorSnackbar message={error?.message} />
 		</>
 	);
 }
