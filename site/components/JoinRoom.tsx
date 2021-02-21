@@ -38,7 +38,7 @@ export default function JoinRoom() {
 			<form onSubmit={event => joinRoom(event, roomId, password, setError)}>
 				<label htmlFor="password">Password</label>
 				<Input type="password" id="password" placeholder="Password" ref={password} />
-				<Button type="submit">Join</Button>
+				<Button primary type="submit">Join</Button>
 			</form>
 		</CenterCard>
 	)

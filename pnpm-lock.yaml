@@ -6,6 +6,7 @@ importers:
       autoprefixer: 10.2.4_postcss@8.2.6
       axios: 0.21.1
       classnames: 2.2.6
+      framer-motion: 3.6.2_react-dom@17.0.1+react@17.0.1
       next: 10.0.7_bdba1ca4a80d13560ab4ce49959c6ea2
       postcss: 8.2.6
       react: 17.0.1
@@ -28,6 +29,7 @@ importers:
       autoprefixer: ^10.2.4
       axios: ^0.21.1
       classnames: ^2.2.6
+      framer-motion: ^3.6.2
       next: 10.0.7
       postcss: ^8.2.6
       react: 17.0.1
@@ -71,6 +73,18 @@ packages:
     dev: false
     resolution:
       integrity: sha512-jBD+G8+LWpMBBWvVcdr4QysjUE4mU/syrhN17o1u3gx0/WzJB1kwiVZAXRtWbsIPOwW8pF/YJV5+nmetPzepXg==
+  /@emotion/is-prop-valid/0.8.8:
+    dependencies:
+      '@emotion/memoize': 0.7.4
+    dev: false
+    optional: true
+    resolution:
+      integrity: sha512-u5WtneEAr5IDG2Wv65yhunPSMLIpuKsbuOktRojfrEiEvRyC85LgPMZI63cr7NUqT8ZIGdSVg8ZKGxIug4lXcA==
+  /@emotion/memoize/0.7.4:
+    dev: false
+    optional: true
+    resolution:
+      integrity: sha512-Ja/Vfqe3HpuzRsG1oBtWTHk2PGZ7GR+2Vz5iYGelAw8dx32K0y7PjVuxK6z1nMpZOqAFsRUPCkK1YjJ56qJlgw==
   /@fullhuman/postcss-purgecss/3.1.3:
     dependencies:
       purgecss: 3.1.3
@@ -949,6 +963,27 @@ packages:
     dev: false
     resolution:
       integrity: sha512-E1fz2Xs9ltlUp+qbiyx9wmt2n9dRzPsS11Jtdb8D2o+cC7wr9xkkKsVKJuBX0ST+LVS+LhLO+SbLJNtfWcJvXA==
+  /framer-motion/3.6.2_react-dom@17.0.1+react@17.0.1:
+    dependencies:
+      framesync: 5.0.0
+      hey-listen: 1.0.8
+      popmotion: 9.1.0
+      react: 17.0.1
+      react-dom: 17.0.1_react@17.0.1
+      style-value-types: 4.0.1
+      tslib: 1.14.1
+    dev: false
+    optionalDependencies:
+      '@emotion/is-prop-valid': 0.8.8
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+    resolution:
+      integrity: sha512-PMmybIGmIZVOb422NbUPIu919Rqm6MEKYyoOInExWdVFBsY+isbbu7/R60TZ+ru2eewLq3uTwntrYX04MxnAhg==
+  /framesync/5.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-wd8t+JsQGisluSv1twiEeDv0aNGpavGb9q7xgIk9fGbcIWkNXF/KVtrjnOrCwBWJuiXxlJfNkcvGudsI32FxYA==
   /fs-constants/1.0.0:
     dev: false
     optional: true
@@ -1079,6 +1114,10 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
+  /hey-listen/1.0.8:
+    dev: false
+    resolution:
+      integrity: sha512-COpmrF2NOg4TBWUJ5UVyaCU2A88wEMkUPK4hNqyCkqHbxT92BbvfjoSozkAIIm6XhicGlJHhFdullInrdhwU8Q==
   /hmac-drbg/1.0.1:
     dependencies:
       hash.js: 1.1.7
@@ -1674,6 +1713,15 @@ packages:
       typescript: '*'
     resolution:
       integrity: sha512-7Wjy+9E3WwLOEL30D+m8TSTF7qJJUJLONBnwQp0518siuMxUQUbgZwssaFX+QKlZkjHZcw/IpZCt/H0srrntSg==
+  /popmotion/9.1.0:
+    dependencies:
+      framesync: 5.0.0
+      hey-listen: 1.0.8
+      style-value-types: 4.0.1
+      tslib: 1.14.1
+    dev: false
+    resolution:
+      integrity: sha512-+J7pzzBy5kk2qsP8ilowKs/CH+HoZa3kOGEBNCleCvsPXEF3nKHdfAR3SboMyPvdpIrofaT7ZIy/xWgz446Azw==
   /postcss-functions/3.0.0:
     dependencies:
       glob: 7.1.6
@@ -2245,6 +2293,13 @@ packages:
     optional: true
     resolution:
       integrity: sha1-PFMZQukIwml8DsNEhYwobHygpgo=
+  /style-value-types/4.0.1:
+    dependencies:
+      hey-listen: 1.0.8
+      tslib: 1.14.1
+    dev: false
+    resolution:
+      integrity: sha512-aOV/HHyynIyTmU27qfs0oAHhFde6BFIvV4+nMerE2MAPZMwYOeQk1/F3S6djxF2u4HdbiieCPs3ZzWsbNUoc9A==
   /styled-jsx/3.3.2_react@17.0.1:
     dependencies:
       '@babel/types': 7.8.3
@@ -2413,6 +2468,10 @@ packages:
         optional: true
     resolution:
       integrity: sha512-csd+vJOb/gkzvcCHgTGSChYpy5f1/XKNsmvBGO4JXS+z1v2HobugDz4s1IeFXM3wZB44uczs+eazB5Q/ccdhQw==
+  /tslib/1.14.1:
+    dev: false
+    resolution:
+      integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
   /tty-browserify/0.0.0:
     dev: false
     resolution:

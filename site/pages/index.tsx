@@ -1,35 +1,50 @@
+import { AxiosError } from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import React, { useRef } from 'react';
-import useSWR, { mutate } from 'swr';
+import React, { useRef, useState } from 'react';
+import useSWR from 'swr';
+
+import fetch from '../src/fetch';
+
+import ErrorSnackbar from '../components/ErrorSnackbar';
 import CenterCard from '../components/ui/CenterCard';
-import fetch, { fetcher } from '../src/fetch';
+import Button from '../components/ui/forms/Button';
+import Input from '../components/ui/forms/Input';
+import CardTitle from '../components/ui/CardTitle';
 
 export default function Home() {
   const router = useRouter();
   const roomPassword = useRef<HTMLInputElement>(null);
-  const { data, error } = useSWR('/rooms', fetcher);
+  const [error, setError] = useState<Error>();
+  const { data, error: requestError, mutate, isValidating } = useSWR<string[], AxiosError>('/rooms');
 
   return (
-    <CenterCard>
-      {error && <p>{error.toString()}</p>}
-      {data && Array.isArray(data) ? <ol>{data.map((id: string) => <li key={id}><Link href={`/${id}`}><a>{id}</a></Link></li>)}</ol> : <p>Loading...</p>}
-      <h1 className="text-3xl font-bold mb-6">what's up dog?</h1>
-      <form onSubmit={async event => {
-        event.preventDefault();
+    <>
+      <CenterCard>
+        <CardTitle isValidating={isValidating} title="what's up dog?" data={data}>{
+          (data: string[]) => data.length ? <Link href="/rooms">
+            <a className="text-lg text-gray-500 hover:text-gray-700 font-semibold">
+              your rooms <i className="fas fa-arrow-right"></i>
+            </a>
+          </Link> : <></>
+        }</CardTitle>
+        <form onSubmit={async event => {
+          event.preventDefault();
 
-        try {
-          const res = await fetch.post('/rooms', { password: roomPassword.current?.value });
-          router.push(`/${res.data.id}`);
-          mutate('/rooms');
-        } catch (e) {
-          console.error(e);
-        }
-      }}>
-        <label htmlFor="password">Password</label>
-        <input className="w-full p-3 mb-3 rounded border border-blue-400 focus:ring outline-none" id="password" type="password" placeholder="Password" ref={roomPassword} />
-        <button className="w-full p-3 rounded bg-blue-600 focus:ring hover:bg-blue-700 text-white" type="submit">Create room</button>
-      </form>
-    </CenterCard>
+          try {
+            const res = await fetch.post('/rooms', { password: roomPassword.current?.value });
+            router.push(`/${res.data.id}`);
+            mutate();
+          } catch (e) {
+            setError(e);
+          }
+        }}>
+          <label htmlFor="password" className="sr-only">Password</label>
+          <Input id="password" type="password" placeholder="password" ref={roomPassword} />
+          <Button primary type="submit">create room</Button>
+        </form>
+      </CenterCard>
+      <ErrorSnackbar message={error?.message || requestError?.message} />
+    </>
   )
 }

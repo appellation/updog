@@ -10,7 +10,6 @@ import MicControl from '../components/media/MicControl';
 import VideoControl from '../components/media/VideoControl';
 
 import { WS_API_BASE } from '../src/constants';
-import { fetcher } from '../src/fetch';
 import CenterCard from '../components/ui/CenterCard';
 
 enum SignalOp {
@@ -32,7 +31,7 @@ export default function RoomId() {
 	const router = useRouter();
 	const roomId = router.query.roomId as string | undefined;
 
-	const { data: rooms } = useSWR<string[]>('/rooms', fetcher);
+	const { data: rooms } = useSWR<string[]>('/rooms');
 
 	const [clients, setClients] = useState<Map<string, SimplePeer.Instance>>(() => new Map());
 	const [mustJoin, setMustJoin] = useState<boolean>(true);
