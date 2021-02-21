@@ -35,7 +35,8 @@ export default function JoinRoom() {
 	return (
 		<>
 			<CenterCard>
-				<h1 className="text-3xl font-bold mb-6">join room</h1>
+				<h1 className="text-3xl font-bold mb-2">join room</h1>
+				<p className="mb-6">By clicking "join", you will be exposing your IP address to other members of this room.</p>
 				<form onSubmit={event => joinRoom(event, roomId, password, setError)}>
 					<label htmlFor="password" className="sr-only">Password</label>
 					<Input type="password" id="password" placeholder="password" ref={password} />
