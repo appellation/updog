@@ -19,7 +19,6 @@ export default function ClientOutput(props: ClientProps) {
 			const video = output.current;
 			if (!video) return;
 
-			console.log(streamRef, incoming);
 			const stream = streamRef.current;
 			if (stream) {
 				for (const track of incoming.getTracks()) stream.addTrack(track.clone());
@@ -43,7 +42,7 @@ export default function ClientOutput(props: ClientProps) {
 
 	return (
 		<div className="grid">
-			{hasVideo ? <></> : <div className="w-full row-start-1 col-start-1 h-full flex justify-center items-center h-1/4 bg-gray-300">{ready ? <></> : <i className="fas fa-circle-notch fa-spin fa-3x"></i>}</div>}
+			{hasVideo ? <></> : <div className="w-full row-start-1 col-start-1 h-full flex justify-center items-center bg-gray-300">{ready ? <></> : <i className="fas fa-circle-notch fa-spin fa-3x"></i>}</div>}
 			<video className="w-full row-start-1 col-start-1" ref={output} />
 		</div>
 	);
