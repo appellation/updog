@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes, DetailedHTMLProps, PropsWithChildren } from 'react';
+import { motion } from "framer-motion";
 
 export interface ControlButtonProps {
 	onClick?: () => void;
@@ -6,14 +7,17 @@ export interface ControlButtonProps {
 }
 
 export default function ControlButton(props: PropsWithChildren<ControlButtonProps>) {
-	let styles: string;
-	if (props.isSelected ?? true) {
-		styles = "rounded-full mx-2 h-12 w-12 flex items-center justify-center bg-white text-black";
-	} else {
-		styles = "rounded-full mx-2 h-12 w-12 flex items-center justify-center border border-white text-white";
-	}
-
 	return (
-		<button onClick={props.onClick} className={styles}>{props.children}</button>
+		<div className="switch" onClick={props.onClick} data-isOn={props.isSelected}>
+			<motion.div layout transition={spring}>
+				<button className="handle">{props.children}</button>
+			</motion.div>
+		</div>
 	);
 }
+
+const spring = {
+  type: "spring",
+  stiffness: 700,
+  damping: 30
+};

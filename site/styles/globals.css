@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
+.switch {
+  width: 80px;
+  height: 60px;
+  display: flex;
+  border-radius: 50px;
+  padding: 10px;
+  cursor: pointer;
+  margin-right: 10px
+}
+  
+.switch[data-isOn="true"] {
+  justify-content: flex-end;
+  background-color: #30ba37;
+  transition: background-color .5s linear;
+}
+  
+.switch[data-isOn="false"] {
+  justify-content: flex-start;
+  background-color: #c73636;
+  transition: background-color .5s linear;
+}
+  
+.handle {
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border-radius: 20px;
+}
+  
+button:focus {
+  outline: none;
+}

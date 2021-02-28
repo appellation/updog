@@ -8,6 +8,7 @@ import ClientOutput from '../components/ClientOutput';
 import JoinRoom from '../components/JoinRoom';
 import MicControl from '../components/media/MicControl';
 import VideoControl from '../components/media/VideoControl';
+import ScreenShareControl from "../components/media/ScreenShareControl";
 
 import { WS_API_BASE } from '../src/constants';
 import CenterCard from '../components/ui/CenterCard';
@@ -126,6 +127,7 @@ export default function RoomId() {
 			<div className="fixed bottom-0 flex py-6 bg-gray-900 w-full justify-center">
 				<MicControl onNewStream={onNewStream} />
 				<VideoControl onNewStream={onNewStream} />
+				<ScreenShareControl onNewStream={onNewStream} />
 			</div>
 			<ErrorSnackbar message={error?.message} />
 		</>
