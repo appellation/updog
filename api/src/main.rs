@@ -1,6 +1,9 @@
+use argonautica::{Hasher, Verifier};
 use async_std::{fs::OpenOptions, io::prelude::WriteExt, prelude::*};
+use models::Room;
 use rand::{prelude::*, rngs::OsRng};
-use redis::{aio::ConnectionManager, cmd, Client, RedisError};
+use redis::{aio::ConnectionManager, cmd, RedisError};
+use store::Store;
 use tide::{
 	http::headers::HeaderValue,
 	log::warn,
@@ -15,12 +18,28 @@ mod middleware;
 mod models;
 mod routes;
 mod session;
+mod store;
 
 pub const ONE_DAY_IN_SECONDS: usize = 86_400;
 
+pub type RoomStore = Store<Room>;
+
 #[derive(Clone)]
 pub struct State {
-	pub db: Client,
+	pub room_store: RoomStore,
+	pub db: redis::Client,
+}
+
+impl State {
+	pub fn get_verifier(&self) -> Verifier<'static> {
+		Verifier::new()
+	}
+
+	pub fn get_hasher(&self) -> Hasher<'static> {
+		let mut hasher = Hasher::new();
+		hasher.opt_out_of_secret_key(true);
+		hasher
+	}
 }
 
 async fn get_secret() -> Vec<u8> {
@@ -68,7 +87,10 @@ async fn main() -> tide::Result<()> {
 		.query_async(&mut session_conn)
 		.await?;
 
-	let state = State { db: client };
+	let state = State {
+		room_store: RoomStore::new(client.clone()),
+		db: client,
+	};
 
 	let mut app = tide::with_state(state);
 

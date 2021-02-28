@@ -4,7 +4,7 @@ use async_std::prelude::*;
 use lazy_static::lazy_static;
 use redis::{
 	aio::{Connection, PubSub},
-	cmd, AsyncCommands, Script,
+	AsyncCommands, Script,
 };
 use serde::{Deserialize, Serialize};
 use tide::{Body, Request, Response, StatusCode};
@@ -12,8 +12,8 @@ use tide_websockets::{Message, WebSocketConnection};
 
 use crate::{
 	middleware::ROOM_SESSION_KEY,
-	models::{PubSubPacket, WsOp, WsPacket},
-	State, ONE_DAY_IN_SECONDS,
+	models::{PubSubPacket, Room, WsOp, WsPacket},
+	State,
 };
 
 const GET_EXISTING_KEYS: &'static str = include_str!("../scripts/get_existing_keys.lua");
@@ -39,15 +39,11 @@ pub async fn get_rooms(mut req: Request<State>) -> tide::Result {
 	match maybe_rooms {
 		None => Ok(Body::from_json(&[(); 0])?.into()),
 		Some(cookie_rooms) => {
-			let mut conn = req.state().db.get_async_std_connection().await?;
-
-			let actual_rooms = GET_EXISTING_KEYS_SCRIPT
-				.key(cookie_rooms.iter().collect::<Vec<_>>())
-				.invoke_async::<_, Vec<Option<String>>>(&mut conn)
-				.await?
-				.into_iter()
-				.filter_map(|e| e)
-				.collect::<HashSet<_>>();
+			let actual_rooms = req
+				.state()
+				.room_store
+				.filter_keys(cookie_rooms.into_iter().collect::<Vec<_>>())
+				.await?;
 
 			req.session_mut().insert(ROOM_SESSION_KEY, &actual_rooms)?;
 			Ok(Body::from_json(&actual_rooms)?.into())
@@ -57,19 +53,27 @@ pub async fn get_rooms(mut req: Request<State>) -> tide::Result {
 
 pub async fn create_room(mut req: Request<State>) -> tide::Result {
 	let body = req.body_json::<CreateRoomRequest>().await?;
+	let hashed_password = if body.password.is_empty() {
+		"".to_string()
+	} else {
+		req.state()
+			.get_hasher()
+			.with_password(body.password)
+			.hash()
+			.unwrap()
+	};
+
 	let id = nanoid::nanoid!();
+	let room = Room {
+		id: id.clone(),
+		owner_id: req.session().id().to_string(),
+		name: None,
+		password: hashed_password,
+	};
 
-	let mut conn = req.state().db.get_async_std_connection().await?;
-	let existing: redis::Value = cmd("SET")
-		.arg(&id)
-		.arg(body.password)
-		.arg("EX")
-		.arg(ONE_DAY_IN_SECONDS)
-		.arg("NX")
-		.query_async(&mut conn)
-		.await?;
+	let saved = req.state().room_store.set(&id, &room).await?;
 
-	if let redis::Value::Okay = existing {
+	if saved {
 		let mut rooms = req
 			.session()
 			.get::<HashSet<String>>(ROOM_SESSION_KEY)
@@ -95,25 +99,30 @@ pub async fn join_room(mut req: Request<State>) -> tide::Result {
 	let body = req.body_json::<JoinRoomRequest>().await?;
 	let room_id = req.param("room_id")?.to_owned();
 
-	let password: Option<String> = req
-		.state()
-		.db
-		.clone()
-		.get_async_std_connection()
-		.await?
-		.get(&room_id)
-		.await?;
+	let maybe_room = req.state().room_store.get(&room_id).await?;
 
-	let status = if Some(body.password) == password {
-		let mut rooms = req
-			.session()
-			.get::<HashSet<String>>(ROOM_SESSION_KEY)
-			.unwrap_or_default();
-		rooms.insert(room_id);
-		req.session_mut().insert(ROOM_SESSION_KEY, rooms)?;
-		StatusCode::Ok
-	} else {
-		StatusCode::Unauthorized
+	let status = match maybe_room.map(|room| {
+		if room.password.is_empty() {
+			body.password.is_empty()
+		} else {
+			req.state()
+				.get_verifier()
+				.with_password(body.password)
+				.with_hash(&room.password)
+				.verify()
+				.unwrap()
+		}
+	}) {
+		Some(true) => {
+			let mut rooms = req
+				.session()
+				.get::<HashSet<String>>(ROOM_SESSION_KEY)
+				.unwrap_or_default();
+			rooms.insert(room_id);
+			req.session_mut().insert(ROOM_SESSION_KEY, rooms)?;
+			StatusCode::Ok
+		}
+		_ => StatusCode::Unauthorized,
 	};
 
 	Ok(status.into())
