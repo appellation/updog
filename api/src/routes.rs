@@ -2,7 +2,10 @@ use std::collections::HashSet;
 
 use async_std::prelude::*;
 use lazy_static::lazy_static;
-use orion::{errors::UnknownCryptoError, pwhash::{Password, PasswordHash, hash_password, hash_password_verify}};
+use orion::{
+	errors::UnknownCryptoError,
+	pwhash::{hash_password, hash_password_verify, Password, PasswordHash},
+};
 use redis::{
 	aio::{Connection, PubSub},
 	AsyncCommands, Script,
@@ -107,12 +110,18 @@ pub async fn join_room(mut req: Request<State>) -> tide::Result {
 		.get(&room_id)
 		.await?
 		.map(|room| {
-			Ok::<_, UnknownCryptoError>(/* anything */if room.password.is_empty() {
+			Ok::<_, UnknownCryptoError>(/* anything */ if room.password.is_empty() {
 				body.password.is_empty()
 			} else {
 				let expected = dbg!(PasswordHash::from_encoded(&room.password))?;
 				let password = dbg!(Password::from_slice(body.password.as_bytes()))?;
-				hash_password_verify(&expected, &password, PASSWORD_HASH_ITERATIONS, PASSWORD_MEMORY).is_ok()
+				hash_password_verify(
+					&expected,
+					&password,
+					PASSWORD_HASH_ITERATIONS,
+					PASSWORD_MEMORY,
+				)
+				.is_ok()
 			})
 		})
 		.transpose()?
