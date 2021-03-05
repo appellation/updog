@@ -1,4 +1,3 @@
-use argonautica::{Hasher, Verifier};
 use async_std::{fs::OpenOptions, io::prelude::WriteExt, prelude::*};
 use models::Room;
 use rand::{prelude::*, rngs::OsRng};
@@ -28,18 +27,6 @@ pub type RoomStore = Store<Room>;
 pub struct State {
 	pub room_store: RoomStore,
 	pub db: redis::Client,
-}
-
-impl State {
-	pub fn get_verifier(&self) -> Verifier<'static> {
-		Verifier::new()
-	}
-
-	pub fn get_hasher(&self) -> Hasher<'static> {
-		let mut hasher = Hasher::new();
-		hasher.opt_out_of_secret_key(true);
-		hasher
-	}
 }
 
 async fn get_secret() -> Vec<u8> {
