@@ -1,25 +1,20 @@
 import classnames from 'classnames';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
 import UserMediaControl from './UserMediaControl';
+import StateContext from '../../src/state';
 
-export interface MicControlProps {
-	onNewStream: (stream: MediaStream) => void;
-}
-
-export default function MicControl(props: MicControlProps) {
+export default function MicControl() {
 	const [enabled, setEnabled] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const state = useContext(StateContext);
 
 	return <UserMediaControl
-		onNewStream={props.onNewStream}
 		enabled={enabled}
 		setEnabled={setEnabled}
 		loading={loading}
 		setLoading={setLoading}
-		loadStream={async () => {
-			return navigator.mediaDevices.getUserMedia({ video: true });
-		}}
+		loadStream={() => state.userMedia.requestCamera()}
 	>
 		<i className={classnames('fas', enabled ? 'fa-video' : 'fa-video-slash')} />
 	</UserMediaControl>;
