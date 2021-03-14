@@ -12,7 +12,6 @@ export default function MicControl(props: MicControlProps) {
 	const [loading, setLoading] = useState(false);
 
 	return <UserMediaControl
-		onNewStream={props.onNewStream}
 		enabled={enabled}
 		setEnabled={setEnabled}
 		loading={loading}
