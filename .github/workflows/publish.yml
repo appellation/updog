@@ -17,7 +17,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: ${{ github.repository }}/meat-api
+          repository: ${{ github.repository }}/updog-api
           auto_tag: true
           allow_pull_request: true
           file: api/Dockerfile
@@ -30,7 +30,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: ${{ github.repository }}/meat-site
+          repository: ${{ github.repository }}/updog-site
           auto_tag: true
           allow_pull_request: true
           file: site/Dockerfile
