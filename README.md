@@ -1,4 +1,4 @@
-# meat
+# updog
 
 A P2P video chat web app based on WebRTC.
 
