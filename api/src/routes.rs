@@ -2,6 +2,10 @@ use std::collections::HashSet;
 
 use async_std::prelude::*;
 use lazy_static::lazy_static;
+use orion::{
+	errors::UnknownCryptoError,
+	pwhash::{hash_password, hash_password_verify, Password, PasswordHash},
+};
 use redis::{
 	aio::{Connection, PubSub},
 	AsyncCommands, Script,
@@ -17,6 +21,8 @@ use crate::{
 };
 
 const GET_EXISTING_KEYS: &'static str = include_str!("../scripts/get_existing_keys.lua");
+const PASSWORD_HASH_ITERATIONS: u32 = 3;
+const PASSWORD_MEMORY: u32 = 1 << 16;
 
 lazy_static! {
 	static ref GET_EXISTING_KEYS_SCRIPT: Script = Script::new(GET_EXISTING_KEYS);
@@ -56,11 +62,10 @@ pub async fn create_room(mut req: Request<State>) -> tide::Result {
 	let hashed_password = if body.password.is_empty() {
 		"".to_string()
 	} else {
-		req.state()
-			.get_hasher()
-			.with_password(body.password)
-			.hash()
-			.unwrap()
+		let password = Password::from_slice(body.password.as_bytes())?;
+		hash_password(&password, PASSWORD_HASH_ITERATIONS, PASSWORD_MEMORY)?
+			.unprotected_as_encoded()
+			.to_string()
 	};
 
 	let id = nanoid::nanoid!();
@@ -99,30 +104,39 @@ pub async fn join_room(mut req: Request<State>) -> tide::Result {
 	let body = req.body_json::<JoinRoomRequest>().await?;
 	let room_id = req.param("room_id")?.to_owned();
 
-	let maybe_room = req.state().room_store.get(&room_id).await?;
+	let is_valid_password = req
+		.state()
+		.room_store
+		.get(&room_id)
+		.await?
+		.map(|room| {
+			Ok::<_, UnknownCryptoError>(/* anything */ if room.password.is_empty() {
+				body.password.is_empty()
+			} else {
+				let expected = dbg!(PasswordHash::from_encoded(&room.password))?;
+				let password = dbg!(Password::from_slice(body.password.as_bytes()))?;
+				hash_password_verify(
+					&expected,
+					&password,
+					PASSWORD_HASH_ITERATIONS,
+					PASSWORD_MEMORY,
+				)
+				.is_ok()
+			})
+		})
+		.transpose()?
+		.unwrap_or(false);
 
-	let status = match maybe_room.map(|room| {
-		if room.password.is_empty() {
-			body.password.is_empty()
-		} else {
-			req.state()
-				.get_verifier()
-				.with_password(body.password)
-				.with_hash(&room.password)
-				.verify()
-				.unwrap()
-		}
-	}) {
-		Some(true) => {
-			let mut rooms = req
-				.session()
-				.get::<HashSet<String>>(ROOM_SESSION_KEY)
-				.unwrap_or_default();
-			rooms.insert(room_id);
-			req.session_mut().insert(ROOM_SESSION_KEY, rooms)?;
-			StatusCode::Ok
-		}
-		_ => StatusCode::Unauthorized,
+	let status = if is_valid_password {
+		let mut rooms = req
+			.session()
+			.get::<HashSet<String>>(ROOM_SESSION_KEY)
+			.unwrap_or_default();
+		rooms.insert(room_id);
+		req.session_mut().insert(ROOM_SESSION_KEY, rooms)?;
+		StatusCode::Ok
+	} else {
+		StatusCode::Unauthorized
 	};
 
 	Ok(status.into())

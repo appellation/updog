@@ -1,19 +1,22 @@
+import { AxiosError } from 'axios';
+import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import useWebSocket from 'react-use-websocket';
 import SimplePeer from 'simple-peer';
 import useSWR from 'swr';
 
+import CenterCard from '../components/ui/CenterCard';
 import ClientOutput from '../components/ClientOutput';
+import ErrorSnackbar from '../components/ErrorSnackbar';
 import JoinRoom from '../components/JoinRoom';
 import MicControl from '../components/media/MicControl';
 import VideoControl from '../components/media/VideoControl';
 import ScreenShareControl from "../components/media/ScreenShareControl";
 
 import { WS_API_BASE } from '../src/constants';
-import CenterCard from '../components/ui/CenterCard';
-import ErrorSnackbar from '../components/ErrorSnackbar';
-import { AxiosError } from 'axios';
+import StateContext from '../src/state';
+import MediaControlBar from '../components/MediaControlBar';
 
 enum SignalOp {
 	HELLO = 'Hello',
@@ -30,7 +33,7 @@ interface Packet {
 	op: Payload;
 }
 
-export default function RoomId() {
+function RoomId() {
 	const router = useRouter();
 	const roomId = router.query.roomId as string | undefined;
 
@@ -39,12 +42,7 @@ export default function RoomId() {
 	const [clients, setClients] = useState<Map<string, SimplePeer.Instance>>(() => new Map());
 	const [mustJoin, setMustJoin] = useState<boolean>(true);
 	const [loading, setLoading] = useState<boolean>(true);
-	const [streams, setStreams] = useState<MediaStream[]>([]);
-
-	const onNewStream = (stream: MediaStream) => {
-		for (const peer of clients.values()) (peer as any).addStream(stream);
-		setStreams([...streams, stream]);
-	};
+	const state = useContext(StateContext);
 
 	useEffect(() => {
 		if (roomId) {
@@ -52,6 +50,36 @@ export default function RoomId() {
 			if (data?.includes(roomId)) setMustJoin(false);
 		}
 	}, [data, roomId]);
+
+	const addStream = (stream: MediaStream) => {
+		for (const peer of clients.values()) {
+			try {
+				(peer as any).addStream(stream);
+			} catch (e) {
+				if (e.code === 'ERR_SENDER_ALREADY_ADDED') {
+					(peer as any).removeStream(stream);
+					addStream(stream);
+				} else {
+					console.warn('error adding stream', e);
+				}
+			}
+		}
+	};
+
+	useEffect(() => {
+		const camera = state.userMedia.camera;
+		if (camera) addStream(camera);
+	}, [state.userMedia.camera]);
+
+	useEffect(() => {
+		const screen = state.userMedia.screen;
+		if (screen) addStream(screen);
+	}, [state.userMedia.screen]);
+
+	useEffect(() => {
+		const mic = state.userMedia.mic;
+		if (mic) addStream(mic);
+	}, [state.userMedia.mic]);
 
 	const { lastJsonMessage, sendJsonMessage } = useWebSocket(
 		`${WS_API_BASE}/rooms/${router.query.roomId}`,
@@ -100,7 +128,7 @@ export default function RoomId() {
 				console.log('connected!');
 			});
 
-			for (const stream of streams) (peer as any).addStream(stream);
+			for (const stream of state.userMedia.availableStreams) (peer as any).addStream(stream);
 
 			clients.set(packet.client_id, peer);
 			setClients(clients);
@@ -124,12 +152,10 @@ export default function RoomId() {
 	return (
 		<>
 			<div className={`grid grid-cols-${cols}`}>{[...clients.entries()].map(([id, peer]) => <ClientOutput key={id} peer={peer} />)}</div>
-			<div className="fixed bottom-0 flex py-6 bg-gray-900 w-full justify-center">
-				<MicControl onNewStream={onNewStream} />
-				<VideoControl onNewStream={onNewStream} />
-				<ScreenShareControl onNewStream={onNewStream} />
-			</div>
+			<MediaControlBar />
 			<ErrorSnackbar message={error?.message} />
 		</>
 	);
 }
+
+export default observer(RoomId);

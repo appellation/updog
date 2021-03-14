@@ -3,7 +3,6 @@ import { PropsWithChildren, useState } from 'react';
 import ControlButton from '../ui/ControlButton';
 
 export interface UserMediaControlProps {
-	onNewStream: (stream: MediaStream) => void;
 	enabled: boolean;
 	setEnabled: (enabled: boolean) => void;
 	loading?: boolean;
@@ -12,7 +11,6 @@ export interface UserMediaControlProps {
 }
 
 export default function UserMediaControl({
-	onNewStream,
 	enabled,
 	setEnabled,
 	setLoading,
@@ -36,7 +34,6 @@ export default function UserMediaControl({
 						try {
 							const newStream = await loadStream();
 							setTracks(newStream.getTracks());
-							onNewStream(newStream);
 						} catch (e) {
 							console.error(e);
 							return;

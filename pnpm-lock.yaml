@@ -7,6 +7,8 @@ importers:
       axios: 0.21.1
       classnames: 2.2.6
       framer-motion: 3.6.2_react-dom@17.0.1+react@17.0.1
+      mobx: 6.1.8
+      mobx-react-lite: 3.2.0_5e7abdedacb0956a80bb8ef3f765fbc7
       next: 10.0.7_bdba1ca4a80d13560ab4ce49959c6ea2
       postcss: 8.2.6
       react: 17.0.1
@@ -30,6 +32,8 @@ importers:
       axios: ^0.21.1
       classnames: ^2.2.6
       framer-motion: ^3.6.2
+      mobx: ^6.1.8
+      mobx-react-lite: ^3.2.0
       next: 10.0.7
       postcss: ^8.2.6
       react: 17.0.1
@@ -1397,6 +1401,28 @@ packages:
     optional: true
     resolution:
       integrity: sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==
+  /mobx-react-lite/3.2.0_5e7abdedacb0956a80bb8ef3f765fbc7:
+    dependencies:
+      mobx: 6.1.8
+      react: 17.0.1
+      react-dom: 17.0.1_react@17.0.1
+    dev: false
+    peerDependencies:
+      mobx: ^6.1.0
+      react: ^16.8.0 || ^17
+      react-dom: '*'
+      react-native: '*'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+    resolution:
+      integrity: sha512-q5+UHIqYCOpBoFm/PElDuOhbcatvTllgRp3M1s+Hp5j0Z6XNgDbgqxawJ0ZAUEyKM8X1zs70PCuhAIzX1f4Q/g==
+  /mobx/6.1.8:
+    dev: false
+    resolution:
+      integrity: sha512-U4yCvUeh6yKXRwFxm2lyJjXPVekOEar/R8ZKWAXem/3fthJqYflViawfjDAUh7lZEvbKqljC3NT/pSaUKpE+gg==
   /modern-normalize/1.0.0:
     dev: false
     engines:
