@@ -15,6 +15,7 @@ import VideoControl from '../components/media/VideoControl';
 
 import { WS_API_BASE } from '../src/constants';
 import StateContext from '../src/state';
+import MediaControlBar from '../components/MediaControlBar';
 
 enum SignalOp {
 	HELLO = 'Hello',
@@ -150,10 +151,7 @@ function RoomId() {
 	return (
 		<>
 			<div className={`grid grid-cols-${cols}`}>{[...clients.entries()].map(([id, peer]) => <ClientOutput key={id} peer={peer} />)}</div>
-			<div className="fixed bottom-0 flex py-6 bg-gray-900 w-full justify-center">
-				<MicControl />
-				<VideoControl />
-			</div>
+			<MediaControlBar />
 			<ErrorSnackbar message={error?.message} />
 		</>
 	);

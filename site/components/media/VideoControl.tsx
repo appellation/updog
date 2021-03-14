@@ -4,7 +4,7 @@ import { useContext, useState } from 'react';
 import UserMediaControl from './UserMediaControl';
 import StateContext from '../../src/state';
 
-export default function MicControl() {
+export default function VideoControl() {
 	const [enabled, setEnabled] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const state = useContext(StateContext);
