@@ -6,7 +6,6 @@ import { SWRConfig } from 'swr';
 import { fetcher } from '../src/fetch';
 
 import 'tailwindcss/tailwind.css';
-import '../styles/globals.css';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	return (

@@ -9,26 +9,26 @@
     "export": "next export"
   },
   "dependencies": {
-    "autoprefixer": "^10.2.4",
+    "autoprefixer": "^10.2.5",
     "axios": "^0.21.1",
     "classnames": "^2.2.6",
-    "framer-motion": "^3.6.2",
+    "framer-motion": "^3.10.5",
     "mobx": "^6.1.8",
     "mobx-react-lite": "^3.2.0",
     "next": "10.0.7",
-    "postcss": "^8.2.6",
+    "postcss": "^8.2.8",
     "react": "17.0.1",
     "react-dom": "17.0.1",
-    "react-use-websocket": "^2.4.1",
+    "react-use-websocket": "^2.5.0",
     "simple-peer": "^9.9.3",
     "swr": "^0.4.2",
     "tailwindcss": "^2.0.3"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.11",
-    "@types/node": "^14.14.27",
-    "@types/react": "^17.0.2",
-    "@types/simple-peer": "^6.1.4",
-    "typescript": "^4.1.5"
+    "@types/node": "^14.14.35",
+    "@types/react": "^17.0.3",
+    "@types/simple-peer": "^6.1.6",
+    "typescript": "^4.2.3"
   }
 }
