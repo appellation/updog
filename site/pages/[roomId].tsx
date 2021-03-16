@@ -10,8 +10,6 @@ import CenterCard from '../components/ui/CenterCard';
 import ClientOutput from '../components/ClientOutput';
 import ErrorSnackbar from '../components/ErrorSnackbar';
 import JoinRoom from '../components/JoinRoom';
-import MicControl from '../components/media/MicControl';
-import VideoControl from '../components/media/VideoControl';
 
 import { WS_API_BASE } from '../src/constants';
 import StateContext from '../src/state';
