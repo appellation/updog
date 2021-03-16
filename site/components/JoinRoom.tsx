@@ -39,7 +39,7 @@ export default function JoinRoom() {
 				<p className="mb-6">By clicking "join", you will be exposing your IP address to other members of this room.</p>
 				<form onSubmit={event => joinRoom(event, roomId, password, setError)}>
 					<label htmlFor="password" className="sr-only">Password</label>
-					<Input type="password" id="password" placeholder="password" ref={password} />
+					<Input type="password" id="password" placeholder="password" ref={password} autoComplete="false" />
 					<Button primary type="submit">join</Button>
 				</form>
 			</CenterCard>

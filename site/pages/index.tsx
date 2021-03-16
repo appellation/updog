@@ -40,7 +40,7 @@ export default function Home() {
           }
         }}>
           <label htmlFor="password" className="sr-only">Password</label>
-          <Input id="password" type="password" placeholder="password" ref={roomPassword} />
+          <Input id="password" type="password" placeholder="password" ref={roomPassword} autoComplete="false" />
           <Button primary type="submit">create room</Button>
         </form>
       </CenterCard>
