@@ -25,6 +25,7 @@ export default function ControlButton(props: PropsWithChildren<ControlButtonProp
 		'rounded-full',
 		'shadow-md',
 		'mx-2',
+		'focus:outline-none',
 	);
 
 	return (
