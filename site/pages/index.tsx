@@ -40,9 +40,12 @@ export default function Home() {
           }
         }}>
           <label htmlFor="password" className="sr-only">Password</label>
-          <Input id="password" type="password" placeholder="password" ref={roomPassword} autoComplete="false" />
+          <Input id="password" type="password" placeholder="password (optional)" ref={roomPassword} autoComplete="false" />
           <Button primary type="submit">create room</Button>
         </form>
+        <div className="flex flex-row justify-end content-center mt-4 text-gray-400 space-x-3">
+          <a className="block hover:text-gray-700" href="https://github.com/appellation/updog" target="_blank"><i className="fab fa-github" /></a>
+        </div>
       </CenterCard>
       <ErrorSnackbar message={error?.message || requestError?.message} />
     </>
