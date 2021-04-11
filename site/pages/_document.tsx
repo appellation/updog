@@ -9,7 +9,6 @@ class MyDocument extends Document {
 		return (
 			<Html>
 				<Head>
-					<title>what's up dog?</title>
 					<script src="https://kit.fontawesome.com/d4e5270bca.js" crossOrigin="anonymous"></script>
 				</Head>
 				<body className="bg-gray-700">

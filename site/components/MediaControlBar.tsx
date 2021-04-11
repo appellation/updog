@@ -1,23 +1,20 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext } from 'react';
 
 import StateContext from '../src/state';
 
 import MicControl from './media/MicControl';
 import VideoControl from './media/VideoControl';
+import Video from './Video';
 
 function MediaControlBar() {
 	const state = useContext(StateContext);
-	const userVideoOutput = useRef<HTMLVideoElement>(null);
-
-	useEffect(() => {
-		console.log(state.userMedia.camera);
-		const output = userVideoOutput.current;
-		if (!output) return;
-
-		output.srcObject = state.userMedia.camera;
-		output.play();
-	}, [state.userMedia.camera]);
+	let ua: string;
+	if (typeof window === 'undefined') {
+		ua = '';
+	} else {
+		ua = window.navigator.userAgent;
+	}
 
 	return (
 		<div className="fixed bottom-0 bg-gray-900 w-full flex flex-row items-center flex-nowrap">
@@ -25,7 +22,7 @@ function MediaControlBar() {
 				<MicControl />
 				<VideoControl />
 			</div>
-			<video className="h-24" ref={userVideoOutput} />
+			<Video id={ua} src={state.userMedia.camera} className="h-24" />
 		</div>
 	);
 }
