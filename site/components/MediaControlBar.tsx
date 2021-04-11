@@ -4,6 +4,7 @@ import React, { useContext } from 'react';
 import StateContext from '../src/state';
 
 import MicControl from './media/MicControl';
+import ScreenControl from './media/ScreenControl';
 import VideoControl from './media/VideoControl';
 import Video from './Video';
 
@@ -21,6 +22,7 @@ function MediaControlBar() {
 			<div className="flex flex-grow content-center justify-center">
 				<MicControl />
 				<VideoControl />
+				<ScreenControl />
 			</div>
 			<Video id={ua} src={state.userMedia.camera} className="h-24" />
 		</div>
