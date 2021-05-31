@@ -3,7 +3,7 @@ import { HTTP_API_BASE } from './constants';
 
 const client = axios.create({
 	baseURL: HTTP_API_BASE,
-	withCredentials: true,
+	withCredentials: true
 });
 
 export async function fetcher(url: string) {

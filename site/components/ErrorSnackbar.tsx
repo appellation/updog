@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ErrorProps {
 	message?: string;
@@ -19,9 +19,11 @@ export default function ErrorSnackbar(props: ErrorProps) {
 	if (dismissed || !shown) return <></>;
 
 	return (
-		<div className="absolute bottom-0 left-0 mb-5 ml-5 p-6 bg-red-500 flex justify-start items-baseline rounded shadow-lg text-white">
-			<i className="block mr-3 fas fa-exclamation-circle"></i>
-			<p className="block">{props.message}</p>
+		<div className = "absolute bottom-0 left-0 mb-5 ml-5 p-6 bg-red-500 flex justify-start items-baseline rounded shadow-lg text-white">
+			<i className = "block mr-3 fas fa-exclamation-circle"></i>
+			<p className = "block">
+				{props.message}
+			</p>
 		</div>
 	);
 }

@@ -9,12 +9,13 @@ export interface CardTitleProps<T> {
 
 export default function CardTitle<T>({ title, isValidating, data, children }: CardTitleProps<T>) {
 	return (
-		<div className="flex items-center mb-6">
-			<h1 className="flex-grow text-3xl font-bold">{title}</h1>
-			{isValidating ?
-				<i className="text-gray-500 fas fa-circle-notch fa-spin"></i> :
-				data && children?.(data)
-			}
+		<div className = "flex items-center mb-6">
+			<h1 className = "flex-grow text-3xl font-bold">
+				{title}
+			</h1>
+			{isValidating
+				? <i className = "text-gray-500 fas fa-circle-notch fa-spin"></i>
+				: data && children?.(data)}
 		</div>
-	)
+	);
 }

@@ -12,10 +12,12 @@ enableStaticRendering(typeof window === 'undefined');
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
-		<SWRConfig value={{ fetcher }}>
+		<SWRConfig value = {{ fetcher }}>
 			<AnimateSharedLayout>
 				<Head>
-					<title>what's up dog?</title>
+					<title>
+						what&apos;s up dog?
+					</title>
 				</Head>
 				<Component {...pageProps} />
 			</AnimateSharedLayout>

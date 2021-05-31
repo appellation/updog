@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useRef, RefObject, useState, FormEvent } from 'react'
+import { useRef, RefObject, useState, FormEvent } from 'react';
 import { mutate } from 'swr';
 
 import fetch from '../src/fetch';
@@ -12,7 +12,7 @@ async function joinRoom(
 	event: FormEvent<HTMLFormElement>,
 	id: string,
 	password: RefObject<HTMLInputElement>,
-	setError: (err?: string) => void
+	setError: (err?: string) => void,
 ) {
 	event.preventDefault();
 
@@ -35,15 +35,25 @@ export default function JoinRoom() {
 	return (
 		<>
 			<CenterCard>
-				<h1 className="text-3xl font-bold mb-2">join room</h1>
-				<p className="mb-6">By clicking "join", you will be exposing your IP address to other members of this room.</p>
-				<form onSubmit={event => joinRoom(event, roomId, password, setError)}>
-					<label htmlFor="password" className="sr-only">Password</label>
-					<Input type="password" id="password" placeholder="password" ref={password} autoComplete="false" />
-					<Button primary type="submit">join</Button>
+				<h1 className = "text-3xl font-bold mb-2">
+					join room
+				</h1>
+				<p className = "mb-6">
+					By clicking &ldquo;join&rdquo;, you will be exposing your IP address to other members of this room.
+				</p>
+				<form onSubmit = {event => joinRoom(event, roomId, password, setError)}>
+					<label htmlFor = "password" className = "sr-only">
+						Password
+					</label>
+					<Input type = "password" id = "password"
+						placeholder = "password" ref = {password}
+						autoComplete = "false" />
+					<Button primary type = "submit">
+						join
+					</Button>
 				</form>
 			</CenterCard>
-			<ErrorSnackbar message={error} />
+			<ErrorSnackbar message = {error} />
 		</>
-	)
+	);
 }

@@ -28,7 +28,8 @@ export default function ClientOutput(props: ClientProps) {
 			props.peer.off('stream', streamListener);
 			props.peer.off('connect', connectListener);
 		};
-	}, [props.peer]);
+	}, [ready, props.peer]);
 
-	return <Video id={streamRef.current.id} src={streamRef.current} className="w-full" />;
+	return <Video id = {streamRef.current.id} src = {streamRef.current}
+		className = "w-full" />;
 }

@@ -15,32 +15,30 @@ export default function UserMediaControl({
 	const [tracks, setTracks] = useState<MediaStreamTrack[]>();
 
 	return (
-		<ControlButton
-			onClick={async () => {
-				if (enabled) {
-					if (tracks) for (const track of tracks) track.enabled = false;
-					setEnabled(false);
+		<ControlButton onClick = {async () => {
+			if (enabled) {
+				if (tracks) for (const track of tracks) track.enabled = false;
+				setEnabled(false);
+			} else {
+				if (tracks) {
+					for (const track of tracks) track.enabled = true;
 				} else {
-					if (tracks) {
-						for (const track of tracks) track.enabled = true;
-					} else {
-						try {
-							setLoading?.(true);
+					try {
+						setLoading?.(true);
 
-							const newStream = await loadStream();
-							setTracks(newStream.getTracks());
-						} catch (e) {
-							console.error(e);
-							return;
-						} finally {
-							setLoading?.(false);
-						}
+						const newStream = await loadStream();
+						setTracks(newStream.getTracks());
+					} catch (e) {
+						console.error(e);
+						return;
+					} finally {
+						setLoading?.(false);
 					}
-
-					setEnabled(true);
 				}
-			}}
-			isSelected={enabled}
+
+				setEnabled(true);
+			}
+		}} isSelected = {enabled}
 		>
 			{children}
 		</ControlButton>

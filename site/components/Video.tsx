@@ -64,14 +64,19 @@ function Video(props: VideoProps) {
 	const videoClasses = classNames(
 		'row-start-1',
 		'col-start-1',
-		{ 'invisible': !isVisible },
+		{ invisible: !isVisible },
 		props.className,
 	);
 
 	return (
-		<div className="grid">
-			{<div className={backgroundClasses} style={{ backgroundColor: color.color }}>{ready ? <></> : <i className="fas fa-video-slash fa-3x"></i>}</div>}
-			<video className={videoClasses} ref={output} onClick={onClick} />
+		<div className = "grid">
+			{
+				<div className = {backgroundClasses} style = {{ backgroundColor: color.color }}>
+					{ready ? <></> : <i className = "fas fa-video-slash fa-3x"></i>}
+				</div>
+			}
+			<video className = {videoClasses} ref = {output}
+				onClick = {onClick} />
 		</div>
 	);
 }

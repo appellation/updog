@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/router';
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import useWebSocket from 'react-use-websocket';
 import SimplePeer from 'simple-peer';
 import useSWR from 'swr';
@@ -46,9 +46,9 @@ function RoomId() {
 			if (data || error) setLoading(false);
 			if (data?.includes(roomId)) setMustJoin(false);
 		}
-	}, [data, roomId]);
+	}, [data, error, roomId]);
 
-	const addStream = (stream: MediaStream) => {
+	const addStream = useCallback((stream: MediaStream) => {
 		for (const peer of clients.values()) {
 			try {
 				(peer as any).addStream(stream);
@@ -61,27 +61,27 @@ function RoomId() {
 				}
 			}
 		}
-	};
+	}, [clients]);
 
 	useEffect(() => {
-		const camera = state.userMedia.camera;
+		const { camera } = state.userMedia;
 		if (camera) addStream(camera);
-	}, [state.userMedia.camera]);
+	}, [addStream, state.userMedia, state.userMedia.camera]);
 
 	useEffect(() => {
-		const screen = state.userMedia.screen;
+		const { screen } = state.userMedia;
 		if (screen) addStream(screen);
-	}, [state.userMedia.screen]);
+	}, [addStream, state.userMedia, state.userMedia.screen]);
 
 	useEffect(() => {
-		const mic = state.userMedia.mic;
+		const { mic } = state.userMedia;
 		if (mic) addStream(mic);
-	}, [state.userMedia.mic]);
+	}, [addStream, state.userMedia, state.userMedia.mic]);
 
 	const { lastJsonMessage, sendJsonMessage } = useWebSocket(
 		`${WS_API_BASE}/rooms/${router.query.roomId}`,
 		{},
-		'roomId' in router.query && !mustJoin && !loading
+		'roomId' in router.query && !mustJoin && !loading,
 	);
 
 	useEffect(() => {
@@ -106,8 +106,8 @@ function RoomId() {
 					return;
 			}
 
-			peer.on('signal', data => {
-				sendJsonMessage({ client_id: packet.client_id, op: { t: 'Signal', d: data } });
+			peer.on('signal', d => {
+				sendJsonMessage({ client_id: packet.client_id, op: { t: 'Signal', d } });
 			});
 
 			peer.on('close', () => {
@@ -115,7 +115,7 @@ function RoomId() {
 				setClients(clients);
 			});
 
-			peer.on('error', (e) => {
+			peer.on('error', e => {
 				clients.delete(packet.client_id);
 				setClients(clients);
 				console.error(e);
@@ -132,10 +132,16 @@ function RoomId() {
 		}
 
 		if (packet.op.t === SignalOp.SIGNAL) peer.signal(packet.op.d);
-	}, [lastJsonMessage]);
+	}, [clients, lastJsonMessage, sendJsonMessage, state.userMedia.availableStreams]);
 
 	if (loading) {
-		return <CenterCard><h1 className="text-3xl font-bold">Loading&hellip;</h1></CenterCard>;
+		return (
+			<CenterCard>
+				<h1 className = "text-3xl font-bold">
+					Loading&hellip;
+				</h1>
+			</CenterCard>
+		);
 	}
 
 	if (mustJoin) return <JoinRoom />;
@@ -148,9 +154,11 @@ function RoomId() {
 
 	return (
 		<>
-			<div className={`grid grid-cols-${cols}`}>{[...clients.entries()].map(([id, peer]) => <ClientOutput key={id} peer={peer} />)}</div>
+			<div className = {`grid grid-cols-${cols}`}>
+				{[...clients.entries()].map(([id, peer]) => <ClientOutput key = {id} peer = {peer} />)}
+			</div>
 			<MediaControlBar />
-			<ErrorSnackbar message={error?.message} />
+			<ErrorSnackbar message = {error?.message} />
 		</>
 	);
 }
