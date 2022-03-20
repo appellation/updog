@@ -12,7 +12,9 @@ export default function ClientOutput(props: ClientProps) {
 	const streamRef = useRef<MediaStream>(new MediaStream());
 
 	useEffect(() => {
-		const streamListener = (incoming: MediaStream) => {
+		const streamListener = (incoming: MediaStream | null) => {
+			if (!incoming) return;
+
 			if (!ready) setReady(true);
 			for (const track of incoming.getTracks()) streamRef.current.addTrack(track);
 		};

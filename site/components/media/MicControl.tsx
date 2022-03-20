@@ -1,15 +1,18 @@
+import { observer } from 'mobx-react-lite';
 import { useContext } from 'react';
 
 import UserMediaControl from './UserMediaControl';
 import StateContext from '../../src/state';
 
-export default function MicControl() {
+function MicControl() {
 	const state = useContext(StateContext);
 
 	return (
-		<UserMediaControl loadStream = {() => state.userMedia.requestMic()}>
+		<UserMediaControl src = {state.userMedia.mic}>
 			<i className = "fas fa-microphone" aria-label = "Microphone"
 				aria-hidden = "false" />
 		</UserMediaControl>
 	);
 }
+
+export default observer(MicControl);

@@ -24,7 +24,7 @@ function MediaControlBar() {
 				<VideoControl />
 				<ScreenControl />
 			</div>
-			<Video id = {ua} src = {state.userMedia.camera}
+			<Video id = {ua} src = {state.userMedia.camera.raw}
 				className = "h-24" />
 		</div>
 	);

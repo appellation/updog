@@ -28,7 +28,6 @@ function Video(props: VideoProps) {
 
 		el.oncanplay = () => {
 			setReady(true);
-			el.play().catch(console.error);
 		};
 
 		for (const track of props.src?.getTracks() ?? []) streamRef.current.addTrack(track.clone());

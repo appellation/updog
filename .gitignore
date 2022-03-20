@@ -27,4 +27,4 @@ yarn-error.log*
 
 # data
 /db-*
-/secret.key
+secret.key

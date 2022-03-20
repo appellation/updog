@@ -15,10 +15,12 @@ import { WS_API_BASE } from '../src/constants';
 import StateContext from '../src/state';
 import MediaControlBar from '../components/MediaControlBar';
 
+/* eslint-disable no-unused-vars */
 enum SignalOp {
 	HELLO = 'Hello',
 	SIGNAL = 'Signal',
 }
+/* eslint-enable no-unused-vars */
 
 interface Payload {
 	t: SignalOp;
@@ -32,7 +34,7 @@ interface Packet {
 
 function RoomId() {
 	const router = useRouter();
-	const roomId = router.query.roomId as string | undefined;
+	const roomId = router.query.roomId?.toString();
 
 	const { data, error } = useSWR<string[], AxiosError>('/rooms');
 
@@ -51,10 +53,10 @@ function RoomId() {
 	const addStream = useCallback((stream: MediaStream) => {
 		for (const peer of clients.values()) {
 			try {
-				(peer as any).addStream(stream);
+				peer.addStream(stream);
 			} catch (e) {
-				if (e.code === 'ERR_SENDER_ALREADY_ADDED') {
-					(peer as any).removeStream(stream);
+				if (typeof e === 'object' && (e as any)?.code === 'ERR_SENDER_ALREADY_ADDED') {
+					peer.removeStream(stream);
 					addStream(stream);
 				} else {
 					console.warn('error adding stream', e);
@@ -64,31 +66,30 @@ function RoomId() {
 	}, [clients]);
 
 	useEffect(() => {
-		const { camera } = state.userMedia;
-		if (camera) addStream(camera);
-	}, [addStream, state.userMedia, state.userMedia.camera]);
+		const stream = state.userMedia.camera.raw;
+		if (stream) addStream(stream);
+	}, [addStream, state.userMedia.camera.raw]);
 
 	useEffect(() => {
-		const { screen } = state.userMedia;
-		if (screen) addStream(screen);
-	}, [addStream, state.userMedia, state.userMedia.screen]);
+		const stream = state.userMedia.screen.raw;
+		if (stream) addStream(stream);
+	}, [addStream, state]);
 
 	useEffect(() => {
-		const { mic } = state.userMedia;
-		if (mic) addStream(mic);
-	}, [addStream, state.userMedia, state.userMedia.mic]);
+		const stream = state.userMedia.mic.raw;
+		if (stream) addStream(stream);
+	}, [addStream, state]);
 
 	const { lastJsonMessage, sendJsonMessage } = useWebSocket(
 		`${WS_API_BASE}/rooms/${router.query.roomId}`,
-		{},
+		undefined,
 		'roomId' in router.query && !mustJoin && !loading,
 	);
 
 	useEffect(() => {
-		console.log(lastJsonMessage);
-
 		const packet: Packet | null = lastJsonMessage;
 		if (!packet) return;
+		console.log(lastJsonMessage);
 
 		let peer = clients.get(packet.client_id);
 		if (!peer) {
@@ -107,7 +108,7 @@ function RoomId() {
 			}
 
 			peer.on('signal', d => {
-				sendJsonMessage({ client_id: packet.client_id, op: { t: 'Signal', d } });
+				sendJsonMessage({ client_id: packet.client_id, op: { t: SignalOp.SIGNAL, d } });
 			});
 
 			peer.on('close', () => {
@@ -125,7 +126,9 @@ function RoomId() {
 				console.log('connected!');
 			});
 
-			for (const stream of state.userMedia.availableStreams) (peer as any).addStream(stream);
+			for (const stream of state.userMedia.availableStreams) {
+				if (stream.raw !== null) peer.addStream(stream.raw);
+			}
 
 			clients.set(packet.client_id, peer);
 			setClients(clients);
