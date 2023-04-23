@@ -12,8 +12,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY ./site ./site
 
 RUN npm i -g pnpm
-RUN pnpm i --filter meat-site
-RUN pnpm run -r --filter meat-site build
+RUN pnpm i --filter updog-site
+RUN pnpm run -r --filter updog-site build
 
 WORKDIR /root/src/site
 
