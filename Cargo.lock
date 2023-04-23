@@ -1406,6 +1406,7 @@ dependencies = [
  "futures",
  "pin-project-lite",
  "redust-resp",
+ "serde",
  "serde_bytes",
  "tokio",
  "tokio-util",

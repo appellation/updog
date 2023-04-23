@@ -14,21 +14,22 @@ use axum_sessions::extractors::{ReadableSession, WritableSession};
 use futures::{
 	future::select,
 	stream::{SplitSink, SplitStream},
-	FutureExt, SinkExt, StreamExt,
+	FutureExt, SinkExt, StreamExt, TryStreamExt,
 };
 use orion::{
 	errors::UnknownCryptoError,
 	pwhash::{hash_password, hash_password_verify, Password},
 };
-use redust::{pool::Object, resp::from_data};
+use redust::{model::pubsub, pool::Object, resp::from_data, Connection};
 use serde::{Deserialize, Serialize};
 use tokio::task::spawn_blocking;
+use tracing::error;
 
 use crate::{
 	error::Result,
 	middleware::ROOM_SESSION_KEY,
 	models::{PubSubPacket, Room, WsOp, WsPacket},
-	AppState,
+	AppState, RedisPool,
 };
 
 const PASSWORD_HASH_ITERATIONS: u32 = 3;
@@ -161,16 +162,19 @@ async fn stream_ws(
 		op: WsOp::Hello,
 	};
 
-	let mut conn = state.db.get().await?;
-	conn.cmd(["PUBLISH", &room_id, &serde_json::to_string(&hello_packet)?])
+	state
+		.db
+		.get()
+		.await?
+		.cmd(["PUBLISH", &room_id, &serde_json::to_string(&hello_packet)?])
 		.await?;
 
-	let mut signals = state.db.get().await?;
+	let mut signals = Object::take(state.db.get().await?);
 	signals.cmd(["SUBSCRIBE", &room_id]).await?;
 
 	let (tx, rx) = stream.split();
 	let publisher = consume_pubsub(&client_id, signals, tx).boxed();
-	let consumer = consume_ws(&room_id, &client_id, conn, rx).boxed();
+	let consumer = consume_ws(&room_id, &client_id, state.db.clone(), rx).boxed();
 
 	select(consumer, publisher).await;
 	Ok(())
@@ -179,7 +183,7 @@ async fn stream_ws(
 async fn consume_ws<'a>(
 	room_id: &'a str,
 	client_id: &'a str,
-	mut conn: Object<String>,
+	pool: RedisPool,
 	mut stream: SplitStream<WebSocket>,
 ) -> Result<()> {
 	while let Some(Ok(msg)) = stream.next().await {
@@ -200,7 +204,9 @@ async fn consume_ws<'a>(
 			src_id: client_id,
 		};
 
-		conn.cmd(["PUBLISH", &room_id, &serde_json::to_string(&packet)?])
+		pool.get()
+			.await?
+			.cmd(["PUBLISH", &room_id, &serde_json::to_string(&packet)?])
 			.await?;
 	}
 
@@ -209,20 +215,26 @@ async fn consume_ws<'a>(
 
 async fn consume_pubsub(
 	client_id: &str,
-	mut messages: Object<String>,
+	mut messages: Connection,
 	mut out: SplitSink<WebSocket, Message>,
 ) -> Result<()> {
-	while let Some(message) = messages.next().await {
-		let payload: String = from_data(message?)?;
-		let packet = serde_json::from_str::<PubSubPacket>(&payload)?;
-		if (packet.dst_id == None && packet.src_id != client_id) || packet.dst_id == Some(client_id)
-		{
-			let send_packet = WsPacket {
-				client_id: packet.src_id,
-				op: packet.op,
-			};
-			out.send(Message::Text(serde_json::to_string(&send_packet)?))
-				.await?;
+	while let Some(message) = messages.try_next().await? {
+		let payload = from_data::<pubsub::Response>(message)?;
+		match payload {
+			pubsub::Response::Message(msg) => {
+				let packet = serde_json::from_slice::<PubSubPacket>(&msg.data)?;
+				if (packet.dst_id == None && packet.src_id != client_id)
+					|| packet.dst_id == Some(client_id)
+				{
+					let send_packet = WsPacket {
+						client_id: packet.src_id,
+						op: packet.op,
+					};
+					out.send(Message::Text(serde_json::to_string(&send_packet)?))
+						.await?;
+				}
+			}
+			_ => error!("Unexpected pubsub message"),
 		}
 	}
 

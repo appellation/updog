@@ -89,7 +89,6 @@ function RoomId() {
 	useEffect(() => {
 		const packet = lastJsonMessage as Packet | null;
 		if (!packet) return;
-		console.log(lastJsonMessage);
 
 		let peer = clients.get(packet.client_id);
 		if (!peer) {
