@@ -32,7 +32,7 @@ export default function RoomsList() {
 						{data.map((id: string) => (
 							<li key = {id}>
 								<Link href = {`/${id}`}>
-										{id}
+									{id}
 								</Link>
 							</li>
 						))}

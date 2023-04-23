@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/react';
 import { observer } from 'mobx-react-lite';
 import { useContext } from 'react';
 
@@ -9,8 +10,7 @@ function MicControl() {
 
 	return (
 		<UserMediaControl src = {state.userMedia.mic}>
-			<i className = "fas fa-microphone" aria-label = "Microphone"
-				aria-hidden = "false" />
+			<Icon icon = "mdi:microphone" />
 		</UserMediaControl>
 	);
 }

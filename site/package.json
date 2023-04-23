@@ -28,6 +28,7 @@
     "uniqolor": "^1.1.0"
   },
   "devDependencies": {
+    "@iconify/react": "^4.1.0",
     "@types/node": "^18.16.0",
     "@types/react": "^18.0.38",
     "@types/simple-peer": "^9.11.5",

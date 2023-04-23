@@ -8,9 +8,7 @@ class MyDocument extends Document {
 	render() {
 		return (
 			<Html>
-				<Head>
-					<script src = "https://kit.fontawesome.com/d4e5270bca.js" crossOrigin = "anonymous"></script>
-				</Head>
+				<Head />
 				<body className = "bg-gray-700">
 					<Main />
 					<NextScript />

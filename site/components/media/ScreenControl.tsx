@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/react';
 import { observer } from 'mobx-react-lite';
 import { useContext } from 'react';
 
@@ -9,8 +10,7 @@ function ScreenControl() {
 
 	return (
 		<UserMediaControl src = {state.userMedia.screen}>
-			<i className = "fas fa-desktop" aria-label = "Screen Share"
-				aria-hidden = "false" />
+			<Icon icon = "mdi:monitor" />
 		</UserMediaControl>
 	);
 }

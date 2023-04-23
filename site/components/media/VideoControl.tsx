@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/react';
 import { observer } from 'mobx-react-lite';
 import { useContext } from 'react';
 
@@ -9,8 +10,7 @@ function VideoControl() {
 
 	return (
 		<UserMediaControl src = {state.userMedia.camera}>
-			<i className = "fas fa-video" aria-label = "Camera"
-				aria-hidden = "false" />
+			<Icon icon = "mdi:video" />
 		</UserMediaControl>
 	);
 }
