@@ -29,7 +29,7 @@ services:
         - HTTP_API_BASE=http://localhost:8000
     command: pnpm dev
     volumes:
-      - ./site:/app
+      - ./site:/root/src/site
     labels:
       - traefik.http.routers.site.rule=Host(`localhost`)
       - traefik.http.routers.site.entryPoints=site
