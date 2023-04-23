@@ -7,7 +7,7 @@ pub struct Room {
 	pub id: String,
 	pub owner_id: String,
 	pub name: Option<String>,
-	pub password: PasswordHash,
+	pub password: Option<PasswordHash>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

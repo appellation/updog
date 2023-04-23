@@ -70,10 +70,17 @@ pub async fn create_room(
 	mut sess: WritableSession,
 	Json(body): Json<CreateRoomRequest>,
 ) -> Result<Response> {
-	let password = Password::from_slice(body.password.as_bytes())?;
-	let hashed_password =
-		spawn_blocking(move || hash_password(&password, PASSWORD_HASH_ITERATIONS, PASSWORD_MEMORY))
-			.await??;
+	let hashed_password = if body.password.is_empty() {
+		None
+	} else {
+		let password = Password::from_slice(body.password.as_bytes())?;
+		Some(
+			spawn_blocking(move || {
+				hash_password(&password, PASSWORD_HASH_ITERATIONS, PASSWORD_MEMORY)
+			})
+			.await??,
+		)
+	};
 
 	let id = nanoid::nanoid!();
 	let room = Room {
@@ -116,8 +123,14 @@ pub async fn join_room(
 		.get(&room_id)
 		.await?
 		.map(|room| {
-			let password = Password::from_slice(body.password.as_bytes())?;
-			let is_valid = hash_password_verify(&room.password, &password).is_ok();
+			let is_valid = match room.password {
+				Some(hash) => {
+					let password = Password::from_slice(body.password.as_bytes())?;
+					hash_password_verify(&hash, &password).is_ok()
+				}
+				None => body.password.is_empty(),
+			};
+
 			Ok::<_, UnknownCryptoError>(is_valid)
 		})
 		.transpose()?
