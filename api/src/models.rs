@@ -17,6 +17,12 @@ pub struct PubSubPacket<'a> {
 	pub op: WsOp,
 }
 
+impl PubSubPacket<'_> {
+	pub fn should_send_to_client(&self, client_id: &str) -> bool {
+		(self.dst_id == None && self.src_id != client_id) || self.dst_id == Some(client_id)
+	}
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WsPacket<'a> {
 	pub client_id: &'a str,

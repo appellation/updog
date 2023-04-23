@@ -223,9 +223,7 @@ async fn consume_pubsub(
 		match payload {
 			pubsub::Response::Message(msg) => {
 				let packet = serde_json::from_slice::<PubSubPacket>(&msg.data)?;
-				if (packet.dst_id == None && packet.src_id != client_id)
-					|| packet.dst_id == Some(client_id)
-				{
+				if packet.should_send_to_client(client_id) {
 					let send_packet = WsPacket {
 						client_id: packet.src_id,
 						op: packet.op,
