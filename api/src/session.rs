@@ -1,57 +1,67 @@
 use std::fmt::{self, Debug, Formatter};
 
-use redis::{aio::ConnectionManager, cmd, AsyncCommands};
-use tide::{
-	sessions::{Session, SessionStore},
-	utils::async_trait,
-};
+use async_session::{async_trait, Session, SessionStore};
+use redust::resp::from_data;
+use serde_bytes::ByteBuf;
+
+use crate::RedisPool;
 
 #[derive(Clone)]
-pub struct RedisSessionStore<T> {
-	conn: T,
+pub struct RedisSessionStore {
+	pool: RedisPool,
 }
 
-impl<T> RedisSessionStore<T> {
-	pub fn new(conn: T) -> Self {
-		Self { conn }
+impl RedisSessionStore {
+	pub fn new(pool: RedisPool) -> Self {
+		Self { pool }
 	}
 }
 
-impl<T> Debug for RedisSessionStore<T> {
+impl Debug for RedisSessionStore {
 	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
 		f.debug_struct("RedisSessionStore").finish()
 	}
 }
 
 #[async_trait]
-impl SessionStore for RedisSessionStore<ConnectionManager> {
+impl SessionStore for RedisSessionStore {
 	async fn load_session(&self, cookie_value: String) -> anyhow::Result<Option<Session>> {
 		let id = Session::id_from_cookie_value(&cookie_value)?;
-		let maybe_bytes: Option<Vec<u8>> = self.conn.clone().get(id).await?;
+		let bytes = from_data::<ByteBuf>(self.pool.get().await?.cmd(["GET", &id]).await?)?;
+		let sess = bitcode::deserialize::<Session>(&bytes)?;
 
-		Ok(maybe_bytes
-			.map(|bytes| bincode::deserialize::<Session>(&bytes))
-			.transpose()?
-			.and_then(|sess| sess.validate()))
+		Ok(sess.validate())
 	}
 
 	async fn store_session(&self, session: Session) -> anyhow::Result<Option<String>> {
-		let bytes = bincode::serialize(&session)?;
-		let mut conn = self.conn.clone();
+		let bytes = bitcode::serialize(&session)?;
+		let mut conn = self.pool.get().await?;
 		match session.expires_in() {
-			None => conn.set(session.id(), bytes).await?,
-			Some(ex) => conn.set_ex(session.id(), bytes, ex.as_secs() as _).await?,
-		}
+			None => {
+				conn.cmd([b"SET".as_ref(), session.id().as_bytes(), &bytes])
+					.await?
+			}
+			Some(ex) => {
+				conn.cmd([
+					b"SET".as_ref(),
+					session.id().as_bytes(),
+					&bytes,
+					b"EX",
+					ex.as_secs().to_string().as_bytes(),
+				])
+				.await?
+			}
+		};
 		Ok(session.into_cookie_value())
 	}
 
 	async fn destroy_session(&self, session: Session) -> anyhow::Result<()> {
-		self.conn.clone().del(session.id()).await?;
+		self.pool.get().await?.cmd(["DEL", session.id()]).await?;
 		Ok(())
 	}
 
 	async fn clear_store(&self) -> anyhow::Result<()> {
-		cmd("FLUSHDB").query_async(&mut self.conn.clone()).await?;
+		self.pool.get().await?.cmd(["FLUSHDB"]).await?;
 		Ok(())
 	}
 }

@@ -1,32 +1,49 @@
-use async_std::{fs::OpenOptions, io::prelude::WriteExt, prelude::*};
+use axum::{
+	http::{
+		header::{ACCEPT, ACCEPT_ENCODING, CONTENT_TYPE},
+		HeaderValue, Method,
+	},
+	middleware::from_fn,
+	routing::get,
+	Router, Server,
+};
+use axum_sessions::SessionLayer;
+use lazy_static::lazy_static;
 use models::Room;
 use rand::{prelude::*, rngs::OsRng};
-use redis::{aio::ConnectionManager, cmd, RedisError};
-use store::Store;
-use tide::{
-	http::headers::HeaderValue,
-	log::warn,
-	security::{CorsMiddleware, Origin},
-	sessions::SessionMiddleware,
-	utils::After,
-	Response,
+use redust::{
+	pool::{Manager, Pool},
+	script::Script,
 };
-use tide_websockets::WebSocket;
+use store::Store;
+use tokio::{
+	fs::OpenOptions,
+	io::{AsyncReadExt, AsyncWriteExt},
+};
+use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
+use tracing::warn;
 
+mod error;
 mod middleware;
 mod models;
 mod routes;
 mod session;
 mod store;
 
-pub const ONE_DAY_IN_SECONDS: usize = 86_400;
+pub const ONE_DAY_IN_SECONDS: &'static [u8] = b"86400";
+const GET_EXISTING_KEYS: &'static [u8] = include_bytes!("../scripts/get_existing_keys.lua");
+
+lazy_static! {
+	pub static ref GET_EXISTING_KEYS_SCRIPT: Script = Script::new(GET_EXISTING_KEYS);
+}
 
 pub type RoomStore = Store<Room>;
+pub type RedisPool = Pool<String>;
 
 #[derive(Clone)]
-pub struct State {
+pub struct AppState {
 	pub room_store: RoomStore,
-	pub db: redis::Client,
+	pub db: RedisPool,
 }
 
 async fn get_secret() -> Vec<u8> {
@@ -60,58 +77,52 @@ async fn get_secret() -> Vec<u8> {
 	}
 }
 
-#[async_std::main]
-async fn main() -> tide::Result<()> {
-	tide::log::start();
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+	tracing_subscriber::fmt::init();
 
 	#[cfg(debug_assertions)]
-	dotenv::dotenv()?;
+	let _ = dotenvy::dotenv();
 
-	let client = redis::Client::open(std::env::var("REDIS_URI")?)?;
-	let mut session_conn = ConnectionManager::new(client.clone()).await?;
-	cmd("SELECT")
-		.arg(1u8)
-		.query_async(&mut session_conn)
-		.await?;
+	let manager = Manager::new(std::env::var("REDIS_URI").unwrap_or("localhost:6379".to_string()));
+	let pool = Pool::builder(manager).build()?;
 
-	let state = State {
-		room_store: RoomStore::new(client.clone()),
-		db: client,
+	let state = AppState {
+		room_store: RoomStore::new(pool.clone()),
+		db: pool.clone(),
 	};
 
-	let mut app = tide::with_state(state);
+	let app = Router::new()
+		.route(
+			"/rooms/:room_id",
+			get(routes::handle_ws)
+				.layer(from_fn(middleware::authorized_for_room))
+				.put(routes::join_room),
+		)
+		.route("/rooms", get(routes::get_rooms).post(routes::create_room))
+		.route_layer(SessionLayer::new(
+			session::RedisSessionStore::new(pool),
+			&get_secret().await,
+		))
+		.layer(
+			CorsLayer::new()
+				.allow_origin(
+					std::env::var("CORS_ORIGIN")
+						.unwrap_or_else(|_| "http://localhost:3000".into())
+						.parse::<HeaderValue>()?,
+				)
+				.allow_credentials(true)
+				.allow_headers([CONTENT_TYPE, ACCEPT, ACCEPT_ENCODING])
+				.allow_methods([Method::GET, Method::POST, Method::OPTIONS, Method::PUT]),
+		)
+		.layer(CompressionLayer::new())
+		.layer(TraceLayer::new_for_http())
+		.with_state(state);
 
-	app.with(SessionMiddleware::new(
-		session::RedisSessionStore::new(session_conn),
-		&get_secret().await,
-	))
-	.with(
-		CorsMiddleware::new()
-			.allow_origin(Origin::from(
-				std::env::var("CORS_ORIGIN").unwrap_or_else(|_| "http://localhost:3000".into()),
-			))
-			.allow_credentials(true)
-			.allow_headers("content-type".parse::<HeaderValue>()?)
-			.allow_methods("GET, POST, OPTIONS, PUT".parse::<HeaderValue>().unwrap()),
-	)
-	.with(After(|res: Response| async move {
-		if let Some(err) = res.downcast_error::<RedisError>() {
-			dbg!(err.detail());
-		}
+	Server::bind(&"0.0.0.0:3000".parse().unwrap())
+		.serve(app.into_make_service())
+		.await
+		.unwrap();
 
-		Ok(res)
-	}));
-
-	app.at("/rooms/:room_id")
-		.with(middleware::client_id)
-		.get(WebSocket::new(routes::stream_ws));
-
-	app.at("/rooms/:room_id").put(routes::join_room);
-
-	app.at("/rooms")
-		.post(routes::create_room)
-		.get(routes::get_rooms);
-
-	app.listen("0.0.0.0:8080").await?;
 	Ok(())
 }

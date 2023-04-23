@@ -1,12 +1,13 @@
+use orion::pwhash::PasswordHash;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Room {
 	pub id: String,
 	pub owner_id: String,
 	pub name: Option<String>,
-	pub password: String,
+	pub password: PasswordHash,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

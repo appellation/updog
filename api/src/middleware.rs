@@ -1,24 +1,24 @@
-use std::{collections::HashSet, future::Future, pin::Pin};
+use std::collections::HashSet;
 
-use tide::{Next, Request, StatusCode};
-
-use crate::State;
+use axum::{
+	body::Body,
+	extract::Path,
+	http::{Request, StatusCode},
+	middleware::Next,
+	response::{IntoResponse, Response},
+};
+use axum_sessions::extractors::ReadableSession;
 
 pub const ROOM_SESSION_KEY: &'static str = "ROOMS";
 
-pub fn client_id<'a>(
-	req: Request<State>,
-	next: Next<'a, State>,
-) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-	Box::pin(async move {
-		let room_id = req.param("room_id")?;
-
-		match req.session().get::<HashSet<String>>(ROOM_SESSION_KEY) {
-			Some(set) if set.contains(room_id) => Ok(next.run(req).await),
-			_ => Err(tide::Error::from_str(
-				StatusCode::Unauthorized,
-				"unable to stream before joining",
-			)),
-		}
-	})
+pub async fn authorized_for_room(
+	Path(room_id): Path<String>,
+	sess: ReadableSession,
+	req: Request<Body>,
+	next: Next<Body>,
+) -> Response {
+	match sess.get::<HashSet<String>>(ROOM_SESSION_KEY) {
+		Some(set) if set.contains(&room_id) => next.run(req).await,
+		_ => StatusCode::UNAUTHORIZED.into_response(),
+	}
 }

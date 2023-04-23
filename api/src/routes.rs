@@ -1,35 +1,41 @@
 use std::collections::HashSet;
 
-use async_std::prelude::*;
-use lazy_static::lazy_static;
+use axum::{
+	extract::{
+		ws::{Message, WebSocket},
+		Path, State, WebSocketUpgrade,
+	},
+	http::StatusCode,
+	response::{IntoResponse, Response},
+	Json,
+};
+use axum_macros::debug_handler;
+use axum_sessions::extractors::{ReadableSession, WritableSession};
+use futures::{
+	future::select,
+	stream::{SplitSink, SplitStream},
+	FutureExt, SinkExt, StreamExt,
+};
 use orion::{
 	errors::UnknownCryptoError,
-	pwhash::{hash_password, hash_password_verify, Password, PasswordHash},
+	pwhash::{hash_password, hash_password_verify, Password},
 };
-use redis::{
-	aio::{Connection, PubSub},
-	AsyncCommands, Script,
-};
+use redust::{pool::Object, resp::from_data};
 use serde::{Deserialize, Serialize};
-use tide::{Body, Request, Response, StatusCode};
-use tide_websockets::{Message, WebSocketConnection};
+use tokio::task::spawn_blocking;
 
 use crate::{
+	error::Result,
 	middleware::ROOM_SESSION_KEY,
 	models::{PubSubPacket, Room, WsOp, WsPacket},
-	State,
+	AppState,
 };
 
-const GET_EXISTING_KEYS: &'static str = include_str!("../scripts/get_existing_keys.lua");
 const PASSWORD_HASH_ITERATIONS: u32 = 3;
 const PASSWORD_MEMORY: u32 = 1 << 16;
 
-lazy_static! {
-	static ref GET_EXISTING_KEYS_SCRIPT: Script = Script::new(GET_EXISTING_KEYS);
-}
-
 #[derive(Debug, Deserialize)]
-struct CreateRoomRequest {
+pub struct CreateRoomRequest {
 	password: String,
 }
 
@@ -38,113 +44,115 @@ struct CreateRoomResponse {
 	id: String,
 }
 
-pub async fn get_rooms(mut req: Request<State>) -> tide::Result {
-	let maybe_rooms = req.session().get::<HashSet<String>>(ROOM_SESSION_KEY);
-	req.session_mut().remove(ROOM_SESSION_KEY);
+#[debug_handler]
+pub async fn get_rooms(
+	State(state): State<AppState>,
+	mut sess: WritableSession,
+) -> Result<Json<HashSet<String>>> {
+	let maybe_rooms = sess.get::<Vec<String>>(ROOM_SESSION_KEY);
+	sess.remove(ROOM_SESSION_KEY);
 
 	match maybe_rooms {
-		None => Ok(Body::from_json(&[(); 0])?.into()),
+		None => Ok(Json(HashSet::new())),
 		Some(cookie_rooms) => {
-			let actual_rooms = req
-				.state()
-				.room_store
-				.filter_keys(cookie_rooms.into_iter().collect::<Vec<_>>())
-				.await?;
+			let actual_rooms = state.room_store.filter_keys(cookie_rooms).await?;
 
-			req.session_mut().insert(ROOM_SESSION_KEY, &actual_rooms)?;
-			Ok(Body::from_json(&actual_rooms)?.into())
+			sess.insert(ROOM_SESSION_KEY, &actual_rooms)?;
+			Ok(Json(actual_rooms))
 		}
 	}
 }
 
-pub async fn create_room(mut req: Request<State>) -> tide::Result {
-	let body = req.body_json::<CreateRoomRequest>().await?;
-	let hashed_password = if body.password.is_empty() {
-		"".to_string()
-	} else {
-		let password = Password::from_slice(body.password.as_bytes())?;
-		hash_password(&password, PASSWORD_HASH_ITERATIONS, PASSWORD_MEMORY)?
-			.unprotected_as_encoded()
-			.to_string()
-	};
+#[debug_handler]
+pub async fn create_room(
+	State(state): State<AppState>,
+	mut sess: WritableSession,
+	Json(body): Json<CreateRoomRequest>,
+) -> Result<Response> {
+	let password = Password::from_slice(body.password.as_bytes())?;
+	let hashed_password =
+		spawn_blocking(move || hash_password(&password, PASSWORD_HASH_ITERATIONS, PASSWORD_MEMORY))
+			.await??;
 
 	let id = nanoid::nanoid!();
 	let room = Room {
 		id: id.clone(),
-		owner_id: req.session().id().to_string(),
+		owner_id: sess.id().to_string(),
 		name: None,
 		password: hashed_password,
 	};
 
-	let saved = req.state().room_store.set(&id, &room).await?;
+	let saved = state.room_store.set(&id, &room).await?;
 
 	if saved {
-		let mut rooms = req
-			.session()
+		let mut rooms = sess
 			.get::<HashSet<String>>(ROOM_SESSION_KEY)
 			.unwrap_or_default();
 		rooms.insert(id.clone());
-		req.session_mut().insert(ROOM_SESSION_KEY, rooms)?;
+		sess.insert(ROOM_SESSION_KEY, rooms)?;
 
 		let response = CreateRoomResponse { id };
-		Ok(Response::builder(StatusCode::Created)
-			.body(Body::from_json(&response)?)
-			.build())
+		Ok((StatusCode::CREATED, Json(response)).into_response())
 	} else {
-		Ok(StatusCode::Locked.into())
+		Ok(StatusCode::LOCKED.into_response())
 	}
 }
 
 #[derive(Debug, Deserialize)]
-struct JoinRoomRequest {
+pub struct JoinRoomRequest {
 	password: String,
 }
 
-pub async fn join_room(mut req: Request<State>) -> tide::Result {
-	let body = req.body_json::<JoinRoomRequest>().await?;
-	let room_id = req.param("room_id")?.to_owned();
-
-	let is_valid_password = req
-		.state()
+#[debug_handler]
+pub async fn join_room(
+	State(state): State<AppState>,
+	Path(room_id): Path<String>,
+	mut sess: WritableSession,
+	Json(body): Json<JoinRoomRequest>,
+) -> Result<StatusCode> {
+	let is_valid_password = state
 		.room_store
 		.get(&room_id)
 		.await?
 		.map(|room| {
-			Ok::<_, UnknownCryptoError>(/* anything */ if room.password.is_empty() {
-				body.password.is_empty()
-			} else {
-				let expected = dbg!(PasswordHash::from_encoded(&room.password))?;
-				let password = dbg!(Password::from_slice(body.password.as_bytes()))?;
-				hash_password_verify(
-					&expected,
-					&password,
-					PASSWORD_HASH_ITERATIONS,
-					PASSWORD_MEMORY,
-				)
-				.is_ok()
-			})
+			let password = Password::from_slice(body.password.as_bytes())?;
+			let is_valid = hash_password_verify(&room.password, &password).is_ok();
+			Ok::<_, UnknownCryptoError>(is_valid)
 		})
 		.transpose()?
 		.unwrap_or(false);
 
 	let status = if is_valid_password {
-		let mut rooms = req
-			.session()
+		let mut rooms = sess
 			.get::<HashSet<String>>(ROOM_SESSION_KEY)
 			.unwrap_or_default();
 		rooms.insert(room_id);
-		req.session_mut().insert(ROOM_SESSION_KEY, rooms)?;
-		StatusCode::Ok
+		sess.insert(ROOM_SESSION_KEY, rooms)?;
+		StatusCode::OK
 	} else {
-		StatusCode::Unauthorized
+		StatusCode::UNAUTHORIZED
 	};
 
-	Ok(status.into())
+	Ok(status)
 }
 
-pub async fn stream_ws(req: Request<State>, stream: WebSocketConnection) -> tide::Result<()> {
-	let room_id = req.param("room_id")?.to_owned();
-	let client_id = req.session().id();
+#[debug_handler]
+pub async fn handle_ws(
+	State(state): State<AppState>,
+	Path(room_id): Path<String>,
+	sess: ReadableSession,
+	ws: WebSocketUpgrade,
+) -> Response {
+	ws.on_upgrade(|socket| async move { stream_ws(state, room_id, sess, socket).await.unwrap() })
+}
+
+async fn stream_ws(
+	state: AppState,
+	room_id: String,
+	sess: ReadableSession,
+	stream: WebSocket,
+) -> Result<()> {
+	let client_id = sess.id();
 
 	let hello_packet = PubSubPacket {
 		src_id: client_id,
@@ -152,31 +160,31 @@ pub async fn stream_ws(req: Request<State>, stream: WebSocketConnection) -> tide
 		op: WsOp::Hello,
 	};
 
-	let mut conn = req.state().db.get_async_std_connection().await?;
-	conn.publish(&room_id, serde_json::to_string(&hello_packet)?)
+	let mut conn = state.db.get().await?;
+	conn.cmd(["PUBLISH", &room_id, &serde_json::to_string(&hello_packet)?])
 		.await?;
 
-	let signals = req.state().db.get_async_std_connection().await?;
-	let mut signals = signals.into_pubsub();
-	signals.subscribe(&room_id).await?;
+	let mut signals = state.db.get().await?;
+	signals.cmd(["SUBSCRIBE", &room_id]).await?;
 
-	let publisher = consume_pubsub(client_id, signals, stream.clone());
-	let consumer = consume_ws(&room_id, client_id, conn, stream);
+	let (tx, rx) = stream.split();
+	let publisher = consume_pubsub(client_id, signals, tx).boxed();
+	let consumer = consume_ws(&room_id, client_id, conn, rx).boxed();
 
-	consumer.try_race(publisher).await?;
+	select(consumer, publisher).await;
 	Ok(())
 }
 
 async fn consume_ws<'a>(
 	room_id: &'a str,
 	client_id: &'a str,
-	mut conn: Connection,
-	mut stream: WebSocketConnection,
-) -> tide::Result<()> {
+	mut conn: Object<String>,
+	mut stream: SplitStream<WebSocket>,
+) -> Result<()> {
 	while let Some(Ok(msg)) = stream.next().await {
 		let packet = match &msg {
 			Message::Ping(data) => {
-				let _ = stream.send(Message::Pong(data.clone())).await;
+				// let _ = stream.send(Message::Pong(data.clone())).await;
 				continue;
 			}
 			Message::Close(_) => break,
@@ -191,7 +199,7 @@ async fn consume_ws<'a>(
 			src_id: client_id,
 		};
 
-		conn.publish(room_id, serde_json::to_string(&packet)?)
+		conn.cmd(["PUBLISH", &room_id, &serde_json::to_string(&packet)?])
 			.await?;
 	}
 
@@ -200,13 +208,11 @@ async fn consume_ws<'a>(
 
 async fn consume_pubsub(
 	client_id: &str,
-	pubsub: PubSub,
-	out: WebSocketConnection,
-) -> tide::Result<()> {
-	let mut messages = pubsub.into_on_message();
-
+	mut messages: Object<String>,
+	mut out: SplitSink<WebSocket, Message>,
+) -> Result<()> {
 	while let Some(message) = messages.next().await {
-		let payload = message.get_payload::<String>()?;
+		let payload: String = from_data(message?)?;
 		let packet = serde_json::from_str::<PubSubPacket>(&payload)?;
 		if (packet.dst_id == None && packet.src_id != client_id) || packet.dst_id == Some(client_id)
 		{
@@ -214,7 +220,7 @@ async fn consume_pubsub(
 				client_id: packet.src_id,
 				op: packet.op,
 			};
-			out.send_string(serde_json::to_string(&send_packet)?)
+			out.send(Message::Text(serde_json::to_string(&send_packet)?))
 				.await?;
 		}
 	}
