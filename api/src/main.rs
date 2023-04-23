@@ -119,7 +119,7 @@ async fn main() -> anyhow::Result<()> {
 		.layer(TraceLayer::new_for_http())
 		.with_state(state);
 
-	Server::bind(&"0.0.0.0:3000".parse().unwrap())
+	Server::bind(&"0.0.0.0:8080".parse().unwrap())
 		.serve(app.into_make_service())
 		.await
 		.unwrap();

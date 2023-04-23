@@ -143,19 +143,20 @@ pub async fn handle_ws(
 	sess: ReadableSession,
 	ws: WebSocketUpgrade,
 ) -> Response {
-	ws.on_upgrade(|socket| async move { stream_ws(state, room_id, sess, socket).await.unwrap() })
+	let client_id = sess.id().to_string();
+	ws.on_upgrade(
+		|socket| async move { stream_ws(state, room_id, client_id, socket).await.unwrap() },
+	)
 }
 
 async fn stream_ws(
 	state: AppState,
 	room_id: String,
-	sess: ReadableSession,
+	client_id: String,
 	stream: WebSocket,
 ) -> Result<()> {
-	let client_id = sess.id();
-
 	let hello_packet = PubSubPacket {
-		src_id: client_id,
+		src_id: &client_id,
 		dst_id: None,
 		op: WsOp::Hello,
 	};
@@ -168,8 +169,8 @@ async fn stream_ws(
 	signals.cmd(["SUBSCRIBE", &room_id]).await?;
 
 	let (tx, rx) = stream.split();
-	let publisher = consume_pubsub(client_id, signals, tx).boxed();
-	let consumer = consume_ws(&room_id, client_id, conn, rx).boxed();
+	let publisher = consume_pubsub(&client_id, signals, tx).boxed();
+	let consumer = consume_ws(&room_id, &client_id, conn, rx).boxed();
 
 	select(consumer, publisher).await;
 	Ok(())

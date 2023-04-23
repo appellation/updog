@@ -18,7 +18,10 @@ pub async fn authorized_for_room(
 	next: Next<Body>,
 ) -> Response {
 	match sess.get::<HashSet<String>>(ROOM_SESSION_KEY) {
-		Some(set) if set.contains(&room_id) => next.run(req).await,
+		Some(set) if set.contains(&room_id) => {
+			drop(sess);
+			next.run(req).await
+		}
 		_ => StatusCode::UNAUTHORIZED.into_response(),
 	}
 }

@@ -7,12 +7,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.38"
+anyhow = { version = "1.0.70", features = ["backtrace"] }
 async-session = "3.0.0"
 axum = { version = "0.6.16", features = ["ws", "tracing"] }
 axum-macros = "0.3.7"
 axum-sessions = "0.5.0"
-bitcode = "0.2.1"
+ciborium = "0.2.0"
 dotenvy = "0.15.7"
 futures = "0.3.28"
 lazy_static = "1.4.0"

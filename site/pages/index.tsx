@@ -28,11 +28,9 @@ export default function Home() {
 					{
 						(rooms: string[]) => (rooms.length > 0
 							? (
-								<Link href = "/rooms">
-									<a className = "text-lg text-gray-500 hover:text-gray-700 font-semibold">
+								<Link href = "/rooms" className='text-lg text-gray-500 hover:text-gray-700 font-semibold'>
 										your rooms
 										<i className = "fas fa-arrow-right" />
-									</a>
 								</Link>
 							)
 							: <></>)

@@ -1,6 +1,7 @@
 use std::{collections::HashSet, marker::PhantomData};
 
 use anyhow::Result;
+use ciborium::{de::from_reader, ser::into_writer};
 use redust::resp::{from_data, Data};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_bytes::ByteBuf;
@@ -33,19 +34,24 @@ impl<T> Store<T> {
 
 impl<T: DeserializeOwned + Serialize> Store<T> {
 	pub async fn get(&self, key: &str) -> Result<Option<T>> {
-		let data = from_data::<ByteBuf>(self.redis.get().await?.cmd(["GET", key]).await?)?;
+		let bytes = from_data::<ByteBuf>(self.redis.get().await?.cmd(["GET", key]).await?)?;
+		let data = from_reader(bytes.as_slice())?;
 
-		Ok(bitcode::deserialize(&data)?)
+		Ok(data)
 	}
 
 	pub async fn set(&self, key: &str, data: &T) -> Result<bool> {
-		let mut conn = self.redis.get().await?;
+		let mut bytes = vec![];
+		into_writer(data, &mut bytes)?;
 
-		let result = conn
+		let result = self
+			.redis
+			.get()
+			.await?
 			.cmd([
 				b"SET".as_ref(),
 				key.as_bytes(),
-				&bitcode::serialize(data)?,
+				&bytes,
 				b"EX",
 				ONE_DAY_IN_SECONDS,
 				b"NX",
