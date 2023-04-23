@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/react';
 import { useEffect, useState } from 'react';
 
 interface ErrorProps {
@@ -20,7 +21,7 @@ export default function ErrorSnackbar(props: ErrorProps) {
 
 	return (
 		<div className = "absolute bottom-0 left-0 mb-5 ml-5 p-6 bg-red-500 flex justify-start items-baseline rounded shadow-lg text-white">
-			<i className = "block mr-3 fas fa-exclamation-circle"></i>
+			<Icon icon = "bi:exclamation-circle-fill" />
 			<p className = "block">
 				{props.message}
 			</p>

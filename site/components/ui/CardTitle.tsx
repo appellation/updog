@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/react';
 import { ReactNode } from 'react';
 
 export interface CardTitleProps<T> {
@@ -14,7 +15,7 @@ export default function CardTitle<T>({ title, isValidating, data, children }: Ca
 				{title}
 			</h1>
 			{isValidating
-				? <i className = "text-gray-500 fas fa-circle-notch fa-spin"></i>
+				? <Icon icon = "eos-icons:loading" />
 				: data && children?.(data)}
 		</div>
 	);

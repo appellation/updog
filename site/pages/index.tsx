@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/react';
 import { AxiosError } from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -28,9 +29,9 @@ export default function Home() {
 					{
 						(rooms: string[]) => (rooms.length > 0
 							? (
-								<Link href = "/rooms" className = "text-lg text-gray-500 hover:text-gray-700 font-semibold">
+								<Link href = "/rooms" className = "text-lg text-gray-500 hover:text-gray-700 font-semibold flex flex-row items-center">
 									your rooms
-									<i className = "fas fa-arrow-right" />
+									<Icon inline icon = "mdi:arrow-right-thick" />
 								</Link>
 							)
 							: <></>)
@@ -64,7 +65,7 @@ export default function Home() {
 					<a className = "block hover:text-gray-700" href = "https://github.com/appellation/updog"
 						target = "_blank"
 						rel = "noreferrer">
-						<i className = "fab fa-github" />
+						<Icon icon = "mdi:github" />
 					</a>
 				</div>
 			</CenterCard>

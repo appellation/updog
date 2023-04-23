@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/react';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef, useState } from 'react';
@@ -73,7 +74,7 @@ function Video(props: VideoProps) {
 		<div className = "grid">
 			{
 				<div className = {backgroundClasses} style = {{ backgroundColor: color.color }}>
-					{ready ? <></> : <i className = "fas fa-video-slash fa-3x"></i>}
+					{ready ? <></> : <Icon icon = "mdi:video-off" />}
 				</div>
 			}
 			<video className = {videoClasses} ref = {output}
