@@ -8,5 +8,5 @@ COPY ./api ./api
 RUN cargo install --path ./api
 
 FROM alpine
-COPY --from=build /usr/local/cargo/bin/meat-api .
-ENTRYPOINT ["/meat-api"]
+COPY --from=build /usr/local/cargo/bin/updog-api .
+ENTRYPOINT ["/updog-api"]

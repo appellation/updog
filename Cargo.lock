@@ -959,32 +959,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b87248edafb776e59e6ee64a79086f65890d3510f2c656c000bf2a7e8a0aea40"
 
 [[package]]
-name = "meat-api"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-session",
- "axum",
- "axum-macros",
- "axum-sessions",
- "bitcode",
- "dotenvy",
- "futures",
- "lazy_static",
- "nanoid",
- "orion",
- "rand 0.8.3",
- "redust",
- "serde",
- "serde_bytes",
- "serde_json",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1907,6 +1881,32 @@ name = "unicode-width"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0edd1e5b14653f783770bce4a4dabb4a5108a5370a5f5d8cfe8710c361f6c8b"
+
+[[package]]
+name = "updog-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-session",
+ "axum",
+ "axum-macros",
+ "axum-sessions",
+ "bitcode",
+ "dotenvy",
+ "futures",
+ "lazy_static",
+ "nanoid",
+ "orion",
+ "rand 0.8.3",
+ "redust",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "url"
