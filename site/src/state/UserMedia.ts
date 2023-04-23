@@ -1,8 +1,8 @@
 import { makeAutoObservable } from 'mobx';
+import UserMediaSource from './UserMediaSource';
 import CameraMediaSource from './media/CameraMediaSource';
 import MicMediaSource from './media/MicMediaSource';
 import ScreenMediaSource from './media/ScreenMediaSource';
-import UserMediaSource from './UserMediaSource';
 
 export default class UserMedia {
 	public readonly camera: UserMediaSource = new CameraMediaSource();

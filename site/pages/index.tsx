@@ -4,13 +4,13 @@ import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import useSWR from 'swr';
 
-import fetch from '../src/fetch';
 
 import ErrorSnackbar from '../components/ErrorSnackbar';
+import CardTitle from '../components/ui/CardTitle';
 import CenterCard from '../components/ui/CenterCard';
 import Button from '../components/ui/forms/Button';
 import Input from '../components/ui/forms/Input';
-import CardTitle from '../components/ui/CardTitle';
+import fetch from '../src/fetch';
 
 export default function Home() {
 	const router = useRouter();
@@ -46,7 +46,9 @@ export default function Home() {
 						router.push(`/${res.data.id}`);
 						mutate();
 					} catch (e) {
-						setError(e);
+						if (e instanceof Error) {
+							setError(e);
+						}
 					}
 				}}
 				>

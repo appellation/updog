@@ -2,11 +2,11 @@ import { useRouter } from 'next/router';
 import { useRef, RefObject, useState, FormEvent } from 'react';
 import { mutate } from 'swr';
 
-import fetch from '../src/fetch';
 import ErrorSnackbar from './ErrorSnackbar';
 import CenterCard from './ui/CenterCard';
 import Button from './ui/forms/Button';
 import Input from './ui/forms/Input';
+import fetch from '../src/fetch';
 
 async function joinRoom(
 	event: FormEvent<HTMLFormElement>,

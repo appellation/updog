@@ -6,14 +6,14 @@ import useWebSocket from 'react-use-websocket';
 import SimplePeer from 'simple-peer';
 import useSWR from 'swr';
 
-import CenterCard from '../components/ui/CenterCard';
 import ClientOutput from '../components/ClientOutput';
 import ErrorSnackbar from '../components/ErrorSnackbar';
 import JoinRoom from '../components/JoinRoom';
 
+import MediaControlBar from '../components/MediaControlBar';
+import CenterCard from '../components/ui/CenterCard';
 import { WS_API_BASE } from '../src/constants';
 import StateContext from '../src/state';
-import MediaControlBar from '../components/MediaControlBar';
 
 /* eslint-disable no-unused-vars */
 enum SignalOp {
@@ -87,7 +87,7 @@ function RoomId() {
 	);
 
 	useEffect(() => {
-		const packet: Packet | null = lastJsonMessage;
+		const packet = lastJsonMessage as Packet | null;
 		if (!packet) return;
 		console.log(lastJsonMessage);
 
@@ -108,6 +108,7 @@ function RoomId() {
 			}
 
 			peer.on('signal', d => {
+				// @ts-expect-error everything here is serializable, despite type errors to the contrary
 				sendJsonMessage({ client_id: packet.client_id, op: { t: SignalOp.SIGNAL, d } });
 			});
 

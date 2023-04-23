@@ -14,7 +14,7 @@ function Video(props: VideoProps) {
 	const streamRef = useRef(new MediaStream());
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [ready, setReady] = useState(false);
-	const [color, setColor] = useState({ color: '#000000', isLight: true });
+	const [color, setColor] = useState(uniqolor(props.id));
 	const [isVisible, setIsVisible] = useState(false);
 
 	useEffect(() => {
@@ -34,8 +34,10 @@ function Video(props: VideoProps) {
 
 		if ('srcObject' in el) {
 			el.srcObject = props.src ?? null;
-		} else {
-			(el as HTMLVideoElement).src = URL.createObjectURL(props.src);
+		} else if (props.src) {
+			// @ts-expect-error apparently URL.createObjectURL expects a MediaSource, but documentation
+			// suggests MediaStream also works
+			(el as HTMLMediaElement).src = URL.createObjectURL(props.src);
 		}
 
 		el.play();

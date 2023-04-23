@@ -1,12 +1,12 @@
 import { observer } from 'mobx-react-lite';
 import { useContext } from 'react';
 
-import StateContext from '../src/state';
-
+import Video from './Video';
 import MicControl from './media/MicControl';
+
 import ScreenControl from './media/ScreenControl';
 import VideoControl from './media/VideoControl';
-import Video from './Video';
+import StateContext from '../src/state';
 
 function MediaControlBar() {
 	const state = useContext(StateContext);

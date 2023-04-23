@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react-lite';
 import { PropsWithChildren } from 'react';
 
-import ControlButton from '../ui/ControlButton';
 import UserMediaSource from '../../src/state/UserMediaSource';
+import ControlButton from '../ui/ControlButton';
 
 export interface UserMediaControlProps {
 	src: UserMediaSource;

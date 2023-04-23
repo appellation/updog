@@ -1,7 +1,7 @@
 import { AnimateSharedLayout } from 'framer-motion';
-import Head from 'next/head';
-import { AppProps } from 'next/dist/next-server/lib/router/router';
 import { enableStaticRendering } from 'mobx-react-lite';
+import type { AppProps } from 'next/app';
+import Head from 'next/head';
 import { SWRConfig } from 'swr';
 
 import { fetcher } from '../src/fetch';

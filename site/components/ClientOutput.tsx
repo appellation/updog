@@ -32,6 +32,8 @@ export default function ClientOutput(props: ClientProps) {
 		};
 	}, [ready, props.peer]);
 
-	return <Video id = {streamRef.current.id} src = {streamRef.current}
-		className = "w-full" />;
+	return (
+		<Video id = {streamRef.current.id} src = {streamRef.current}
+			className = "w-full" />
+	);
 }
