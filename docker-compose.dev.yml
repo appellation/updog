@@ -10,7 +10,6 @@ services:
     labels:
       - traefik.http.routers.api.rule=Host(`localhost`)
       - traefik.http.routers.api.entryPoints=api
-  redis:
   reverse-proxy:
     ports:
       - 8000:8000
