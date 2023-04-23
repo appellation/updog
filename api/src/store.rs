@@ -3,6 +3,7 @@ use std::{collections::HashSet, marker::PhantomData};
 use anyhow::Result;
 use redust::resp::{from_data, Data};
 use serde::{de::DeserializeOwned, Serialize};
+use serde_bytes::ByteBuf;
 
 use crate::{RedisPool, GET_EXISTING_KEYS_SCRIPT, ONE_DAY_IN_SECONDS};
 
@@ -32,12 +33,9 @@ impl<T> Store<T> {
 
 impl<T: DeserializeOwned + Serialize> Store<T> {
 	pub async fn get(&self, key: &str) -> Result<Option<T>> {
-		let maybe_data: Option<Vec<u8>> =
-			from_data(self.redis.get().await?.cmd(["GET", key]).await?)?;
+		let data = from_data::<ByteBuf>(self.redis.get().await?.cmd(["GET", key]).await?)?;
 
-		Ok(maybe_data
-			.map(|data| bitcode::deserialize(&data))
-			.transpose()?)
+		Ok(bitcode::deserialize(&data)?)
 	}
 
 	pub async fn set(&self, key: &str, data: &T) -> Result<bool> {
