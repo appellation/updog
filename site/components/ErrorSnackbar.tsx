@@ -1,10 +1,10 @@
-import { Icon } from '@iconify/react';
-import { useEffect, useState } from 'react';
+import { Icon } from "@iconify/react";
+import { useEffect, useState } from "react";
 
-interface ErrorProps {
-	message?: string;
+type ErrorProps = {
 	autoDismissTimeout?: number;
-}
+	message?: string;
+};
 
 export default function ErrorSnackbar(props: ErrorProps) {
 	const [dismissed, setDismissed] = useState(false);
@@ -17,12 +17,14 @@ export default function ErrorSnackbar(props: ErrorProps) {
 		}
 	}, [props.autoDismissTimeout, shown]);
 
-	if (dismissed || !shown) return <></>;
+	if (dismissed || !shown) {
+		return null;
+	}
 
 	return (
-		<div className = "absolute bottom-0 left-0 mb-5 ml-5 p-6 bg-red-500 flex justify-start items-baseline rounded shadow-lg text-white">
-			<Icon icon = "bi:exclamation-circle-fill" />
-			<p className = "block">
+		<div className='absolute bottom-0 left-0 mb-5 ml-5 p-6 bg-red-500 flex justify-start items-baseline rounded shadow-lg text-white'>
+			<Icon icon='bi:exclamation-circle-fill' />
+			<p className='block'>
 				{props.message}
 			</p>
 		</div>

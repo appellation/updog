@@ -1,27 +1,29 @@
-import { action, computed, makeObservable, observable, runInAction } from 'mobx';
+import { action, computed, makeObservable, observable, runInAction } from "mobx";
 
 export default abstract class UserMediaSource {
 	private _raw: MediaStream | null = null;
+
 	public get raw(): MediaStream | null {
 		return this._raw ? new MediaStream(this._raw) : null;
 	}
 
 	private _available: boolean = this._raw?.active ?? false;
+
 	public get available(): boolean {
 		return this._available;
 	}
 
 	private _trackCount = 0;
 
-	constructor() {
+	public constructor() {
 		makeObservable(this, {
-			// @ts-ignore
+			// @ts-expect-error _raw is a field but untyped here
 			_raw: observable,
 			_available: observable,
 			available: computed,
 			raw: computed,
 			end: action,
-			_reset: action
+			_reset: action,
 		});
 	}
 
@@ -31,14 +33,20 @@ export default abstract class UserMediaSource {
 		} else {
 			try {
 				await this.request();
-			} catch (e) {
-				console.error(e);
+			} catch (error) {
+				console.error(error);
 			}
 		}
 	}
 
 	public end(): void {
-		this._raw?.getTracks()?.forEach(t => t.stop());
+		const tracks = this._raw?.getTracks();
+		if (tracks) {
+			for (const track of tracks) {
+				track.stop();
+			}
+		}
+
 		this._reset();
 	}
 
@@ -54,7 +62,9 @@ export default abstract class UserMediaSource {
 
 		stream.onremovetrack = () => {
 			this._trackCount -= 1;
-			if (this._trackCount <= 0) this._reset();
+			if (this._trackCount <= 0) {
+				this._reset();
+			}
 		};
 
 		return runInAction(() => {

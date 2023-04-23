@@ -1,14 +1,14 @@
-import { Icon } from '@iconify/react';
-import classNames from 'classnames';
-import { observer } from 'mobx-react-lite';
-import { useEffect, useRef, useState } from 'react';
-import uniqolor from 'uniqolor';
+import { Icon } from "@iconify/react";
+import classNames from "classnames";
+import { observer } from "mobx-react-lite";
+import { useEffect, useRef, useState } from "react";
+import uniqolor from "uniqolor";
 
-export interface VideoProps {
+export type VideoProps = {
+	className?: string;
 	id: string;
 	src?: MediaStream | null;
-	className?: string;
-}
+};
 
 function Video(props: VideoProps) {
 	const output = useRef<HTMLVideoElement>(null);
@@ -25,15 +25,19 @@ function Video(props: VideoProps) {
 
 	useEffect(() => {
 		const el = output.current;
-		if (!el) return;
+		if (!el) {
+			return;
+		}
 
 		el.oncanplay = () => {
 			setReady(true);
 		};
 
-		for (const track of props.src?.getTracks() ?? []) streamRef.current.addTrack(track.clone());
+		for (const track of props.src?.getTracks() ?? []) {
+			streamRef.current.addTrack(track.clone());
+		}
 
-		if ('srcObject' in el) {
+		if ("srcObject" in el) {
 			el.srcObject = props.src ?? null;
 		} else if (props.src) {
 			// @ts-expect-error apparently URL.createObjectURL expects a MediaSource, but documentation
@@ -41,7 +45,7 @@ function Video(props: VideoProps) {
 			(el as HTMLMediaElement).src = URL.createObjectURL(props.src);
 		}
 
-		el.play();
+		void el.play();
 	}, [props.src]);
 
 	useEffect(() => {
@@ -53,32 +57,32 @@ function Video(props: VideoProps) {
 	};
 
 	const backgroundClasses = classNames(
-		'w-full',
-		'h-full',
-		'row-start-1',
-		'col-start-1',
-		'flex',
-		'justify-center',
-		'items-center',
-		{ 'text-white': !color.isLight },
+		"w-full",
+		"h-full",
+		"row-start-1",
+		"col-start-1",
+		"flex",
+		"justify-center",
+		"items-center",
+		{ "text-white": !color.isLight },
 	);
 
 	const videoClasses = classNames(
-		'row-start-1',
-		'col-start-1',
+		"row-start-1",
+		"col-start-1",
 		{ invisible: !isVisible },
 		props.className,
 	);
 
 	return (
-		<div className = "grid">
-			{
-				<div className = {backgroundClasses} style = {{ backgroundColor: color.color }}>
-					{ready ? <></> : <Icon icon = "mdi:video-off" />}
-				</div>
-			}
-			<video className = {videoClasses} ref = {output}
-				onClick = {onClick} />
+		<div className='grid'>
+			<div className={backgroundClasses} style={{ backgroundColor: color.color }}>
+				{ready ? null : <Icon icon='mdi:video-off' />}
+			</div>
+			<video
+				className={videoClasses} onClick={onClick}
+				ref={output}
+			/>
 		</div>
 	);
 }

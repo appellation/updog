@@ -1,13 +1,13 @@
-import UserMediaSource from '../UserMediaSource';
+import UserMediaSource from "../UserMediaSource";
 
 export default class MicMediaSource extends UserMediaSource {
-	protected getMedia(): Promise<MediaStream> {
+	protected async getMedia(): Promise<MediaStream> {
 		return navigator.mediaDevices.getUserMedia({
 			audio: {
 				noiseSuppression: { ideal: true },
 				echoCancellation: { ideal: true },
-				autoGainControl: { ideal: true }
-			}
+				autoGainControl: { ideal: true },
+			},
 		});
 	}
 }

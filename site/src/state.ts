@@ -1,12 +1,11 @@
-import { makeAutoObservable } from 'mobx';
-import { createContext } from 'react';
-
-import UserMedia from './state/UserMedia';
+import { makeAutoObservable } from "mobx";
+import { createContext } from "react";
+import UserMedia from "./state/UserMedia";
 
 export class State {
 	public readonly userMedia = new UserMedia();
 
-	constructor() {
+	public constructor() {
 		makeAutoObservable(this);
 	}
 }

@@ -1,17 +1,16 @@
-import { enableStaticRendering } from 'mobx-react-lite';
-import type { AppProps } from 'next/app';
-import Head from 'next/head';
-import { SWRConfig } from 'swr';
+import { enableStaticRendering } from "mobx-react-lite";
+import type { AppProps } from "next/app";
+import Head from "next/head";
+import { SWRConfig } from "swr";
+import { fetcher } from "../src/fetch";
 
-import { fetcher } from '../src/fetch';
+import "tailwindcss/tailwind.css";
 
-import 'tailwindcss/tailwind.css';
-
-enableStaticRendering(typeof window === 'undefined');
+enableStaticRendering(typeof window === "undefined");
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
-		<SWRConfig value = {{ fetcher }}>
+		<SWRConfig value={{ fetcher }}>
 			<Head>
 				<title>
 					what&apos;s up dog?

@@ -1,0 +1,22 @@
+extends:
+  - neon/common
+  - neon/browser
+  - neon/node
+  - neon/typescript
+  - neon/react
+  - neon/next
+  - neon/edge
+settings:
+  react:
+    version: detect
+parserOptions:
+  project: ./tsconfig.json
+ignorePatterns:
+  - next-env.d.ts
+rules:
+  react/jsx-filename-extension:
+    - error
+    - extensions:
+      - .tsx
+  react/react-in-jsx-scope:
+    - 'off'

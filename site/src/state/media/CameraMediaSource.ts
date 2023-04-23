@@ -1,7 +1,7 @@
-import UserMediaSource from '../UserMediaSource';
+import UserMediaSource from "../UserMediaSource";
 
 export default class CameraMediaSource extends UserMediaSource {
-	protected getMedia(): Promise<MediaStream> {
+	protected async getMedia(): Promise<MediaStream> {
 		return navigator.mediaDevices.getUserMedia({ video: true });
 	}
 }

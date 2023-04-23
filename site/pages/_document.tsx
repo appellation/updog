@@ -1,15 +1,16 @@
-import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document';
+import type { DocumentContext } from "next/document";
+import Document, { Html, Head, Main, NextScript } from "next/document";
 
 class MyDocument extends Document {
-	static async getInitialProps(ctx: DocumentContext) {
+	public static async getInitialProps(ctx: DocumentContext) {
 		return Document.getInitialProps(ctx);
 	}
 
-	render() {
+	public render() {
 		return (
 			<Html>
 				<Head />
-				<body className = "bg-gray-700">
+				<body className='bg-gray-700'>
 					<Main />
 					<NextScript />
 				</body>

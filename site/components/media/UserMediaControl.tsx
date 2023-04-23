@@ -1,19 +1,18 @@
-import { observer } from 'mobx-react-lite';
-import { PropsWithChildren } from 'react';
+import { observer } from "mobx-react-lite";
+import type { PropsWithChildren } from "react";
+import type UserMediaSource from "../../src/state/UserMediaSource";
+import ControlButton from "../ui/ControlButton";
 
-import UserMediaSource from '../../src/state/UserMediaSource';
-import ControlButton from '../ui/ControlButton';
-
-export interface UserMediaControlProps {
+export type UserMediaControlProps = {
 	src: UserMediaSource;
-}
+};
 
 function UserMediaControl({
 	src,
-	children
+	children,
 }: PropsWithChildren<UserMediaControlProps>) {
 	return (
-		<ControlButton onClick = {() => src.toggle()} isSelected = {src.available}>
+		<ControlButton isSelected={src.available} onClick={async () => src.toggle()}>
 			{children}
 		</ControlButton>
 	);
