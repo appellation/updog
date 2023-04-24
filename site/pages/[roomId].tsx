@@ -1,5 +1,6 @@
 import type { AxiosError } from "axios";
-import { observer } from "mobx-react-lite";
+import { ObservableMap, action, runInAction } from "mobx";
+import { observer, useLocalObservable } from "mobx-react-lite";
 import { useRouter } from "next/router";
 import { useCallback, useContext, useEffect, useState } from "react";
 import useWebSocket from "react-use-websocket";
@@ -36,7 +37,7 @@ function RoomId() {
 
 	const { data, error } = useSWR<string[], AxiosError>("/rooms");
 
-	const [clients, setClients] = useState<Map<string, SimplePeer.Instance>>(() => new Map());
+	const clients = useLocalObservable(() => new ObservableMap<string, SimplePeer.Instance>());
 	const [mustJoin, setMustJoin] = useState<boolean>(true);
 	const [loading, setLoading] = useState<boolean>(true);
 	const state = useContext(StateContext);
@@ -89,14 +90,13 @@ function RoomId() {
 		}
 	}, [addStream, state]);
 
-	const { lastJsonMessage, sendJsonMessage } = useWebSocket(
+	const { lastJsonMessage: packet, sendJsonMessage } = useWebSocket<Packet>(
 		`${WS_API_BASE}/rooms/${router.query.roomId}`,
 		undefined,
 		"roomId" in router.query && !mustJoin && !loading,
 	);
 
 	useEffect(() => {
-		const packet = lastJsonMessage as Packet | null;
 		if (!packet) {
 			return;
 		}
@@ -132,16 +132,14 @@ function RoomId() {
 				});
 			});
 
-			peer.on("close", () => {
+			peer.on("close", action(() => {
 				clients.delete(packet.client_id);
-				setClients(clients);
-			});
+			}));
 
-			peer.on("error", (err) => {
+			peer.on("error", action((err) => {
 				clients.delete(packet.client_id);
-				setClients(clients);
 				console.error(err);
-			});
+			}));
 
 			peer.on("connect", () => {
 				console.log("connected!");
@@ -153,14 +151,16 @@ function RoomId() {
 				}
 			}
 
-			clients.set(packet.client_id, peer);
-			setClients(clients);
+			runInAction(() => {
+				clients.set(packet.client_id, peer!);
+			});
+			// setClients(clients);
 		}
 
 		if (packet.op.t === SignalOp.SIGNAL) {
 			peer.signal(packet.op.d);
 		}
-	}, [clients, lastJsonMessage, sendJsonMessage, state.userMedia.availableStreams]);
+	}, [clients, packet, sendJsonMessage, state.userMedia.availableStreams]);
 
 	if (loading) {
 		return (
