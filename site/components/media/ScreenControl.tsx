@@ -1,17 +1,19 @@
 import { Icon } from "@iconify/react";
-import { observer } from "mobx-react-lite";
-import { useContext } from "react";
-import StateContext from "../../src/state";
+import { useUserMedia } from "../../src/context/UserMedia";
 import UserMediaControl from "./UserMediaControl";
 
 function ScreenControl() {
-	const state = useContext(StateContext);
+	const { screen } = useUserMedia();
+
+	if (!screen) {
+		return null;
+	}
 
 	return (
-		<UserMediaControl src={state.userMedia.screen}>
+		<UserMediaControl src={screen}>
 			<Icon icon='mdi:monitor' />
 		</UserMediaControl>
 	);
 }
 
-export default observer(ScreenControl);
+export default ScreenControl;

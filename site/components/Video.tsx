@@ -1,6 +1,5 @@
 import { Icon } from "@iconify/react";
 import classNames from "classnames";
-import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import uniqolor from "uniqolor";
 
@@ -87,4 +86,4 @@ function Video(props: VideoProps) {
 	);
 }
 
-export default observer(Video);
+export default Video;

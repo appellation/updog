@@ -1,19 +1,18 @@
-import { observer } from "mobx-react-lite";
-import { useContext } from "react";
-import StateContext from "../src/state";
+import { useUserMedia } from "../src/context/UserMedia";
 import Video from "./Video";
 import MicControl from "./media/MicControl";
 import ScreenControl from "./media/ScreenControl";
 import VideoControl from "./media/VideoControl";
 
 function MediaControlBar() {
-	const state = useContext(StateContext);
 	let ua: string;
 	if (typeof window === "undefined") {
 		ua = "";
 	} else {
 		ua = window.navigator.userAgent;
 	}
+
+	const { camera } = useUserMedia();
 
 	return (
 		<div className='fixed bottom-0 bg-gray-900 w-full flex flex-row items-center flex-nowrap'>
@@ -24,10 +23,10 @@ function MediaControlBar() {
 			</div>
 			<Video
 				className='h-24' id={ua}
-				src={state.userMedia.camera.raw}
+				src={camera?.stream}
 			/>
 		</div>
 	);
 }
 
-export default observer(MediaControlBar);
+export default MediaControlBar;

@@ -1,6 +1,5 @@
-import { observer } from "mobx-react-lite";
 import type { PropsWithChildren } from "react";
-import type UserMediaSource from "../../src/state/UserMediaSource";
+import type { UserMediaSource } from "../../src/hooks/useMediaSource";
 import ControlButton from "../ui/ControlButton";
 
 export type UserMediaControlProps = {
@@ -18,4 +17,4 @@ function UserMediaControl({
 	);
 }
 
-export default observer(UserMediaControl);
+export default UserMediaControl;

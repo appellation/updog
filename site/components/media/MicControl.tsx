@@ -1,17 +1,20 @@
 import { Icon } from "@iconify/react";
-import { observer } from "mobx-react-lite";
-import { useContext } from "react";
-import StateContext from "../../src/state";
+import { useUserMedia } from "../../src/context/UserMedia";
+import { useMicSource } from "../../src/hooks/useMediaSource";
 import UserMediaControl from "./UserMediaControl";
 
 function MicControl() {
-	const state = useContext(StateContext);
+	const { mic } = useUserMedia();
+
+	if (!mic) {
+		return null;
+	}
 
 	return (
-		<UserMediaControl src={state.userMedia.mic}>
+		<UserMediaControl src={mic}>
 			<Icon icon='mdi:microphone' />
 		</UserMediaControl>
 	);
 }
 
-export default observer(MicControl);
+export default MicControl;

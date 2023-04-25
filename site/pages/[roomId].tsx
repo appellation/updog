@@ -1,8 +1,6 @@
 import type { AxiosError } from "axios";
-import { ObservableMap, action, runInAction } from "mobx";
-import { observer, useLocalObservable } from "mobx-react-lite";
 import { useRouter } from "next/router";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import useWebSocket from "react-use-websocket";
 import SimplePeer from "simple-peer";
 import useSWR from "swr";
@@ -12,7 +10,7 @@ import JoinRoom from "../components/JoinRoom";
 import MediaControlBar from "../components/MediaControlBar";
 import CenterCard from "../components/ui/CenterCard";
 import { WS_API_BASE } from "../src/constants";
-import StateContext from "../src/state";
+import { useAvailableStreams, useCameraSource, useMicSource, useScreenSource } from "../src/hooks/useMediaSource";
 
 /* eslint-disable no-unused-vars */
 enum SignalOp {
@@ -37,10 +35,9 @@ function RoomId() {
 
 	const { data, error } = useSWR<string[], AxiosError>("/rooms");
 
-	const clients = useLocalObservable(() => new ObservableMap<string, SimplePeer.Instance>());
+	const clients = useRef(new Map<string, SimplePeer.Instance>());
 	const [mustJoin, setMustJoin] = useState<boolean>(true);
 	const [loading, setLoading] = useState<boolean>(true);
-	const state = useContext(StateContext);
 
 	useEffect(() => {
 		if (roomId) {
@@ -55,7 +52,7 @@ function RoomId() {
 	}, [data, error, roomId]);
 
 	const addStream = useCallback((stream: MediaStream) => {
-		for (const peer of clients.values()) {
+		for (const peer of clients.current.values()) {
 			try {
 				peer.addStream(stream);
 			} catch (error_) {
@@ -69,26 +66,28 @@ function RoomId() {
 		}
 	}, [clients]);
 
-	useEffect(() => {
-		const stream = state.userMedia.camera.raw;
-		if (stream) {
-			addStream(stream);
-		}
-	}, [addStream, state.userMedia.camera.raw]);
+	const camera = useCameraSource();
+	const screen = useScreenSource();
+	const mic = useMicSource();
+	const availableStreams = useAvailableStreams();
 
 	useEffect(() => {
-		const stream = state.userMedia.screen.raw;
-		if (stream) {
-			addStream(stream);
+		if (camera.stream) {
+			addStream(camera.stream);
 		}
-	}, [addStream, state]);
+	}, [camera.stream, addStream]);
 
 	useEffect(() => {
-		const stream = state.userMedia.mic.raw;
-		if (stream) {
-			addStream(stream);
+		if (screen.stream) {
+			addStream(screen.stream);
 		}
-	}, [addStream, state]);
+	}, [screen.stream, addStream]);
+
+	useEffect(() => {
+		if (mic.stream) {
+			addStream(mic.stream);
+		}
+	}, [mic.stream, addStream]);
 
 	const { lastJsonMessage: packet, sendJsonMessage } = useWebSocket<Packet>(
 		`${WS_API_BASE}/rooms/${router.query.roomId}`,
@@ -101,7 +100,7 @@ function RoomId() {
 			return;
 		}
 
-		let peer = clients.get(packet.client_id);
+		let peer = clients.current.get(packet.client_id);
 		if (!peer) {
 			switch (packet.op.t) {
 				case SignalOp.HELLO: {
@@ -132,35 +131,32 @@ function RoomId() {
 				});
 			});
 
-			peer.on("close", action(() => {
-				clients.delete(packet.client_id);
-			}));
+			peer.on("close", () => {
+				clients.current.delete(packet.client_id);
+			});
 
-			peer.on("error", action((err) => {
-				clients.delete(packet.client_id);
+			peer.on("error", (err) => {
+				clients.current.delete(packet.client_id);
 				console.error(err);
-			}));
+			});
 
 			peer.on("connect", () => {
 				console.log("connected!");
 			});
 
-			for (const stream of state.userMedia.availableStreams) {
-				if (stream.raw !== null) {
-					peer.addStream(stream.raw);
+			for (const { stream } of availableStreams) {
+				if (stream) {
+					peer.addStream(stream);
 				}
 			}
 
-			runInAction(() => {
-				clients.set(packet.client_id, peer!);
-			});
-			// setClients(clients);
+			clients.current.set(packet.client_id, peer!);
 		}
 
 		if (packet.op.t === SignalOp.SIGNAL) {
 			peer.signal(packet.op.d);
 		}
-	}, [clients, packet, sendJsonMessage, state.userMedia.availableStreams]);
+	}, [clients, packet, sendJsonMessage, availableStreams]);
 
 	if (loading) {
 		return (
@@ -176,7 +172,7 @@ function RoomId() {
 		return <JoinRoom />;
 	}
 
-	const count = clients.size;
+	const count = clients.current.size;
 	let cols: number;
 	if (count <= 1) {
 		cols = 1;
@@ -189,7 +185,7 @@ function RoomId() {
 	return (
 		<>
 			<div className={`grid grid-cols-${cols}`}>
-				{[...clients.entries()].map(([id, peer]) => <ClientOutput key={id} peer={peer} />)}
+				{[...clients.current.entries()].map(([id, peer]) => <ClientOutput key={id} peer={peer} />)}
 			</div>
 			<MediaControlBar />
 			<ErrorSnackbar message={error?.message} />
@@ -197,4 +193,4 @@ function RoomId() {
 	);
 }
 
-export default observer(RoomId);
+export default RoomId;

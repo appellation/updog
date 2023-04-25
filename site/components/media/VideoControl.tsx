@@ -1,17 +1,19 @@
 import { Icon } from "@iconify/react";
-import { observer } from "mobx-react-lite";
-import { useContext } from "react";
-import StateContext from "../../src/state";
+import { useUserMedia } from "../../src/context/UserMedia";
 import UserMediaControl from "./UserMediaControl";
 
 function VideoControl() {
-	const state = useContext(StateContext);
+	const { camera } = useUserMedia();
+
+	if (!camera) {
+		return null;
+	}
 
 	return (
-		<UserMediaControl src={state.userMedia.camera}>
+		<UserMediaControl src={camera}>
 			<Icon icon='mdi:video' />
 		</UserMediaControl>
 	);
 }
 
-export default observer(VideoControl);
+export default VideoControl;
