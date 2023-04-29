@@ -6,21 +6,20 @@ import uniqolor from "uniqolor";
 export type VideoProps = {
 	className?: string;
 	id: string;
-	src?: MediaStream | null;
+	isVisible: boolean;
+	src?: MediaStream;
 };
 
-function Video(props: VideoProps) {
+function Video({ className, id, src, isVisible }: VideoProps) {
 	const output = useRef<HTMLVideoElement>(null);
-	const streamRef = useRef(new MediaStream());
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [ready, setReady] = useState(false);
-	const [color, setColor] = useState(uniqolor(props.id));
-	const [isVisible, setIsVisible] = useState(false);
+	const [color, setColor] = useState(uniqolor(id));
 
 	useEffect(() => {
-		const color = uniqolor(props.id);
+		const color = uniqolor(id);
 		setColor(color);
-	}, [props.id]);
+	}, [id]);
 
 	useEffect(() => {
 		const el = output.current;
@@ -32,24 +31,14 @@ function Video(props: VideoProps) {
 			setReady(true);
 		};
 
-		for (const track of props.src?.getTracks() ?? []) {
-			streamRef.current.addTrack(track.clone());
-		}
-
 		if ("srcObject" in el) {
-			el.srcObject = props.src ?? null;
-		} else if (props.src) {
+			el.srcObject = src ?? null;
+		} else if (src) {
 			// @ts-expect-error apparently URL.createObjectURL expects a MediaSource, but documentation
 			// suggests MediaStream also works
-			(el as HTMLMediaElement).src = URL.createObjectURL(props.src);
+			(el as HTMLMediaElement).src = URL.createObjectURL(src);
 		}
-
-		void el.play();
-	}, [props.src]);
-
-	useEffect(() => {
-		setIsVisible(props.src?.active === true);
-	}, [props.src?.active]);
+	}, [src]);
 
 	const onClick = () => {
 		setIsExpanded(!isExpanded);
@@ -70,7 +59,7 @@ function Video(props: VideoProps) {
 		"row-start-1",
 		"col-start-1",
 		{ invisible: !isVisible },
-		props.className,
+		className,
 	);
 
 	return (
@@ -79,7 +68,9 @@ function Video(props: VideoProps) {
 				{ready ? null : <Icon icon='mdi:video-off' />}
 			</div>
 			<video
-				className={videoClasses} onClick={onClick}
+				autoPlay
+				className={videoClasses}
+				onClick={onClick}
 				ref={output}
 			/>
 		</div>

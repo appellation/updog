@@ -1,19 +1,15 @@
 import { Icon } from "@iconify/react";
-import { useUserMedia } from "../../src/context/UserMedia";
-import { useMicSource } from "../../src/hooks/useMediaSource";
-import UserMediaControl from "./UserMediaControl";
+import { useMic } from "../../src/context/UserMedia";
+import ControlButton from "../ui/ControlButton";
 
 function MicControl() {
-	const { mic } = useUserMedia();
-
-	if (!mic) {
-		return null;
-	}
+	const isEnabled = useMic((state) => state.isEnabled);
+	const toggle = useMic((state) => state.toggle);
 
 	return (
-		<UserMediaControl src={mic}>
+		<ControlButton isSelected={isEnabled()} onClick={toggle}>
 			<Icon icon='mdi:microphone' />
-		</UserMediaControl>
+		</ControlButton>
 	);
 }
 

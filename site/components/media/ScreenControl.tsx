@@ -1,18 +1,15 @@
 import { Icon } from "@iconify/react";
-import { useUserMedia } from "../../src/context/UserMedia";
-import UserMediaControl from "./UserMediaControl";
+import { useScreen } from "../../src/context/UserMedia";
+import ControlButton from "../ui/ControlButton";
 
 function ScreenControl() {
-	const { screen } = useUserMedia();
-
-	if (!screen) {
-		return null;
-	}
+	const isEnabled = useScreen((state) => state.isEnabled);
+	const toggle = useScreen((state) => state.toggle);
 
 	return (
-		<UserMediaControl src={screen}>
+		<ControlButton isSelected={isEnabled()} onClick={toggle}>
 			<Icon icon='mdi:monitor' />
-		</UserMediaControl>
+		</ControlButton>
 	);
 }
 

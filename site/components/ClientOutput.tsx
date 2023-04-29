@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type SimplePeer from "simple-peer";
 import Video from "./Video";
 
@@ -6,43 +6,31 @@ export type ClientProps = {
 	peer: SimplePeer.Instance;
 };
 
-export default function ClientOutput(props: ClientProps) {
-	const [ready, setReady] = useState(false);
+export default function ClientOutput({ peer }: ClientProps) {
 	const streamRef = useRef<MediaStream>(new MediaStream());
 
 	useEffect(() => {
-		const streamListener = (incoming: MediaStream | null) => {
-			if (!incoming) {
-				return;
-			}
-
-			if (!ready) {
-				setReady(true);
-			}
-
+		const streamListener = (incoming: MediaStream) => {
 			for (const track of incoming.getTracks()) {
 				streamRef.current.addTrack(track);
 			}
 		};
 
-		const connectListener = () => {
-			if (!ready) {
-				setReady(true);
-			}
-		};
+		const connectListener = () => {};
 
-		props.peer.on("stream", streamListener);
-		props.peer.on("connect", connectListener);
+		peer.on("stream", streamListener);
+		peer.on("connect", connectListener);
 
 		return () => {
-			props.peer.off("stream", streamListener);
-			props.peer.off("connect", connectListener);
+			peer.off("stream", streamListener);
+			peer.off("connect", connectListener);
 		};
-	}, [ready, props.peer]);
+	}, [peer]);
 
 	return (
 		<Video
 			className='w-full' id={streamRef.current.id}
+			isVisible
 			src={streamRef.current}
 		/>
 	);

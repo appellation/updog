@@ -1,18 +1,15 @@
 import { Icon } from "@iconify/react";
-import { useUserMedia } from "../../src/context/UserMedia";
-import UserMediaControl from "./UserMediaControl";
+import { useCamera } from "../../src/context/UserMedia";
+import ControlButton from "../ui/ControlButton";
 
 function VideoControl() {
-	const { camera } = useUserMedia();
-
-	if (!camera) {
-		return null;
-	}
+	const isEnabled = useCamera((state) => state.isEnabled);
+	const toggle = useCamera((state) => state.toggle);
 
 	return (
-		<UserMediaControl src={camera}>
+		<ControlButton isSelected={isEnabled()} onClick={toggle}>
 			<Icon icon='mdi:video' />
-		</UserMediaControl>
+		</ControlButton>
 	);
 }
 
