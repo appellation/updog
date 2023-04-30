@@ -7,12 +7,10 @@ import ErrorSnackbar from "../components/ErrorSnackbar";
 import CardTitle from "../components/ui/CardTitle";
 import CenterCard from "../components/ui/CenterCard";
 
-function ListLink({ id }: { id: string; }) {
+function ListLink({ id }: { id: string }) {
 	return (
 		<li key={id}>
-			<Link href={`/${id}`}>
-				{id}
-			</Link>
+			<Link href={`/${id}`}>{id}</Link>
 		</li>
 	);
 }
@@ -25,26 +23,26 @@ export default function RoomsList() {
 			<CenterCard>
 				<CardTitle
 					isValidating={isValidating}
-					title={(
-						<div className='flex items-center'>
+					title={
+						<div className="flex items-center">
 							<button
-								className='text-gray-500 mr-6 hover:text-gray-700 font-semibold' onClick={() => router.back()}
-								type='button'
+								className="text-gray-500 mr-6 hover:text-gray-700 font-semibold"
+								onClick={() => router.back()}
+								type="button"
 							>
-								<Icon icon='mdi:arrow-left-thick' />
+								<Icon icon="mdi:arrow-left-thick" />
 							</button>
-							<p>
-								your rooms
-							</p>
+							<p>your rooms</p>
 						</div>
-					)}
+					}
 				/>
-				{
-					!error && data && Array.isArray(data) &&
-					<ul className='mt-6 list-disc list-inside ml-3'>
-						{data.map((id: string) => <ListLink id={id} key={id} />)}
+				{!error && data && Array.isArray(data) && (
+					<ul className="mt-6 list-disc list-inside ml-3">
+						{data.map((id: string) => (
+							<ListLink id={id} key={id} />
+						))}
 					</ul>
-				}
+				)}
 			</CenterCard>
 			<ErrorSnackbar message={error?.message} />
 		</>

@@ -4,9 +4,9 @@ import { CENTER_CARD, CENTER_CARD_CONTENT } from "../../src/animations";
 
 export default function CenterCard(props: PropsWithChildren<{}>) {
 	return (
-		<div className='flex justify-center items-center h-screen'>
+		<div className="flex justify-center items-center h-screen">
 			<motion.div
-				className='bg-white rounded w-1/2 shadow-2xl h-auto p-12'
+				className="bg-white rounded w-1/2 shadow-2xl h-auto p-12"
 				layout
 				layoutId={CENTER_CARD}
 				transition={{

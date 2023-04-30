@@ -30,13 +30,13 @@ export default function ControlButton({
 		"rounded-full",
 		"shadow-md",
 		"mx-2",
-		"focus:outline-none",
+		"focus:outline-none"
 	);
 
 	return (
-		<button className={switchClassNames} onClick={onClick} type='button'>
+		<button className={switchClassNames} onClick={onClick} type="button">
 			<motion.div
-				className='w-12 h-12 bg-white rounded-full flex place-items-center justify-center outline-none'
+				className="w-12 h-12 bg-white rounded-full flex place-items-center justify-center outline-none"
 				layout
 				transition={transition}
 			>

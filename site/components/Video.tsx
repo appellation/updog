@@ -52,27 +52,25 @@ function Video({ className, id, src, isVisible }: VideoProps) {
 		"flex",
 		"justify-center",
 		"items-center",
-		{ "text-white": !color.isLight },
+		{ "text-white": !color.isLight }
 	);
 
 	const videoClasses = classNames(
 		"row-start-1",
 		"col-start-1",
 		{ invisible: !isVisible },
-		className,
+		className
 	);
 
 	return (
-		<div className='grid'>
-			<div className={backgroundClasses} style={{ backgroundColor: color.color }}>
-				{ready ? null : <Icon icon='mdi:video-off' />}
+		<div className="grid">
+			<div
+				className={backgroundClasses}
+				style={{ backgroundColor: color.color }}
+			>
+				{ready ? null : <Icon icon="mdi:video-off" />}
 			</div>
-			<video
-				autoPlay
-				className={videoClasses}
-				onClick={onClick}
-				ref={output}
-			/>
+			<video autoPlay className={videoClasses} onClick={onClick} ref={output} />
 		</div>
 	);
 }

@@ -48,11 +48,12 @@ function RoomId() {
 		}
 	}, [data, error, roomId]);
 
-	const { lastJsonMessage: packet, sendJsonMessage } = useWebSocket<Packet | null>(
-		`${WS_API_BASE}/rooms/${router.query.roomId}`,
-		undefined,
-		"roomId" in router.query && !mustJoin && !loading,
-	);
+	const { lastJsonMessage: packet, sendJsonMessage } =
+		useWebSocket<Packet | null>(
+			`${WS_API_BASE}/rooms/${router.query.roomId}`,
+			undefined,
+			"roomId" in router.query && !mustJoin && !loading
+		);
 
 	const streams = useAvailableStreams();
 	const clients = usePeers({
@@ -64,9 +65,7 @@ function RoomId() {
 	if (loading) {
 		return (
 			<CenterCard>
-				<h1 className='text-3xl font-bold'>
-					Loading&hellip;
-				</h1>
+				<h1 className="text-3xl font-bold">Loading&hellip;</h1>
 			</CenterCard>
 		);
 	}
@@ -88,7 +87,9 @@ function RoomId() {
 	return (
 		<>
 			<div className={`grid grid-cols-${cols}`}>
-				{[...clients.entries()].map(([id, peer]) => <ClientOutput key={id} peer={peer} />)}
+				{[...clients.entries()].map(([id, peer]) => (
+					<ClientOutput key={id} peer={peer} />
+				))}
 			</div>
 			<MediaControlBar />
 			<ErrorSnackbar message={error?.message} />

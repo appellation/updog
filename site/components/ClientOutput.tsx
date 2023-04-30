@@ -29,7 +29,8 @@ export default function ClientOutput({ peer }: ClientProps) {
 
 	return (
 		<Video
-			className='w-full' id={streamRef.current.id}
+			className="w-full"
+			id={streamRef.current.id}
 			isVisible
 			src={streamRef.current}
 		/>

@@ -16,14 +16,15 @@ function MediaControlBar() {
 	const cameraStream = useCamera((state) => state.stream);
 
 	return (
-		<div className='fixed bottom-0 bg-gray-900 w-full flex flex-row items-center flex-nowrap'>
-			<div className='flex flex-grow content-center justify-center'>
+		<div className="fixed bottom-0 bg-gray-900 w-full flex flex-row items-center flex-nowrap">
+			<div className="flex flex-grow content-center justify-center">
 				<MicControl />
 				<VideoControl />
 				<ScreenControl />
 			</div>
 			<Video
-				className='h-24' id={ua}
+				className="h-24"
+				id={ua}
 				isVisible={isCameraEnabled()}
 				src={cameraStream}
 			/>

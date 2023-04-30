@@ -8,7 +8,7 @@ function VideoControl() {
 
 	return (
 		<ControlButton isSelected={isEnabled()} onClick={toggle}>
-			<Icon icon='mdi:video' />
+			<Icon icon="mdi:video" />
 		</ControlButton>
 	);
 }

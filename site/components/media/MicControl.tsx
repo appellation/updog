@@ -8,7 +8,7 @@ function MicControl() {
 
 	return (
 		<ControlButton isSelected={isEnabled()} onClick={toggle}>
-			<Icon icon='mdi:microphone' />
+			<Icon icon="mdi:microphone" />
 		</ControlButton>
 	);
 }

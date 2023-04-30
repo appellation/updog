@@ -8,7 +8,7 @@ function ScreenControl() {
 
 	return (
 		<ControlButton isSelected={isEnabled()} onClick={toggle}>
-			<Icon icon='mdi:monitor' />
+			<Icon icon="mdi:monitor" />
 		</ControlButton>
 	);
 }

@@ -8,15 +8,20 @@ export type CardTitleProps<T> = {
 	title: ReactNode;
 };
 
-export default function CardTitle<T>({ title, isValidating, data, children }: CardTitleProps<T>) {
+export default function CardTitle<T>({
+	title,
+	isValidating,
+	data,
+	children,
+}: CardTitleProps<T>) {
 	return (
-		<div className='flex items-center mb-6'>
-			<h1 className='flex-grow text-3xl font-bold'>
-				{title}
-			</h1>
-			{isValidating ?
-				<Icon icon='eos-icons:loading' /> :
-				data && children?.(data)}
+		<div className="flex items-center mb-6">
+			<h1 className="flex-grow text-3xl font-bold">{title}</h1>
+			{isValidating ? (
+				<Icon icon="eos-icons:loading" />
+			) : (
+				data && children?.(data)
+			)}
 		</div>
 	);
 }

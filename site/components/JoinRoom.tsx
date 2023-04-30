@@ -12,7 +12,7 @@ async function joinRoom(
 	event: FormEvent<HTMLFormElement>,
 	id: string,
 	password: RefObject<HTMLInputElement>,
-	setError: (err?: string) => void,
+	setError: (err?: string) => void
 ) {
 	event.preventDefault();
 
@@ -35,22 +35,27 @@ export default function JoinRoom() {
 	return (
 		<>
 			<CenterCard>
-				<h1 className='text-3xl font-bold mb-2'>
-					join room
-				</h1>
-				<p className='mb-6'>
-					By clicking &ldquo;join&rdquo;, you will be exposing your IP address to other members of this room.
+				<h1 className="text-3xl font-bold mb-2">join room</h1>
+				<p className="mb-6">
+					By clicking &ldquo;join&rdquo;, you will be exposing your IP address
+					to other members of this room.
 				</p>
-				<form onSubmit={async (event) => joinRoom(event, roomId, password, setError)}>
-					<label className='sr-only' htmlFor='password'>
+				<form
+					onSubmit={async (event) =>
+						joinRoom(event, roomId, password, setError)
+					}
+				>
+					<label className="sr-only" htmlFor="password">
 						Password
 					</label>
 					<Input
-						autoComplete='false' id='password'
-						placeholder='password' ref={password}
-						type='password'
+						autoComplete="false"
+						id="password"
+						placeholder="password"
+						ref={password}
+						type="password"
 					/>
-					<Button primary type='submit'>
+					<Button primary type="submit">
 						join
 					</Button>
 				</form>

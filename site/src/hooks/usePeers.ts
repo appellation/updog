@@ -26,7 +26,9 @@ export type UsePeersOptions = {
 };
 
 export default function usePeers({ signal, packet, streams }: UsePeersOptions) {
-	const [clients, updateClients] = useImmer(() => new Map<string, SimplePeer.Instance>());
+	const [clients, updateClients] = useImmer(
+		() => new Map<string, SimplePeer.Instance>()
+	);
 
 	useEffect(() => {
 		for (const peer of clients.values()) {
@@ -37,7 +39,11 @@ export default function usePeers({ signal, packet, streams }: UsePeersOptions) {
 						peer.addStream(stream);
 					}
 				} catch (error_) {
-					if (typeof error_ === "object" && (error_ as any)?.code === "ERR_SENDER_ALREADY_ADDED") {} else {
+					if (
+						typeof error_ === "object" &&
+						(error_ as any)?.code === "ERR_SENDER_ALREADY_ADDED"
+					) {
+					} else {
 						console.warn("error adding stream", error_);
 					}
 				}
