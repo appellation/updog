@@ -7,13 +7,15 @@ import type {
 } from "react";
 import React from "react";
 
-type ButtonProps = DetailedHTMLProps<
-	ButtonHTMLAttributes<HTMLButtonElement>,
-	HTMLButtonElement
-> & {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+interface ButtonProps
+	extends DetailedHTMLProps<
+		ButtonHTMLAttributes<HTMLButtonElement>,
+		HTMLButtonElement
+	> {
 	element?: FunctionComponent<this> | string;
 	primary?: boolean;
-};
+}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	({ primary, element = "button", children, ...rest }, ref) => {
